@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Player.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F35A61BE-E688-4BA1-948F-344786E69C08}</ProjectGuid>
     <RootNamespace>Monstersportalsandthings</RootNamespace>
