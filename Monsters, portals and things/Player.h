@@ -5,13 +5,14 @@
 using namespace sf;
 
 class Creature { 
+private: float x, y;
 public:
-	float x, y, w, h, dx, dy, speed = 0; 
+	float w, h, dx, dy, speed = 0; 
 	int dir = 0; //направление (direction)
 	String File; 
 	Image image;
 	Texture texture;
-	Sprite head;
+	Sprite sprite;
 
 	Creature(String FileName, float X, float Y, float W, float H) {
 		File = FileName;
@@ -19,9 +20,9 @@ public:
 		image.loadFromFile("images/" + File);
 		image.createMaskFromColor(Color(136, 56, 168));
 		texture.loadFromImage(image);
-		head.setTexture(texture);
+		sprite.setTexture(texture);
 		x = X; y = Y;
-		head.setTextureRect(IntRect(0, 0, w, h));
+		sprite.setTextureRect(IntRect(x, y, w, h));
 	}
 
 
@@ -40,6 +41,13 @@ public:
 		y += dy*time;
 
 		speed = 0;
-		head.setPosition(x, y);
+		sprite.setPosition(x, y);
+	}
+
+	float getcreaturecoordinateX() {	
+		return x;
+	}
+	float getcreaturecoordinateY() {	
+		return y;
 	}
 }; 

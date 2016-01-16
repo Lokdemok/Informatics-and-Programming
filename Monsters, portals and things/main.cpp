@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "Player.h"
+#include "map.h"
+#include "Camera.h"
 
 using namespace sf;
 
@@ -8,21 +10,21 @@ using namespace sf;
 
 int main()
 {
-	Image image;
-	image.loadFromFile("images/hero.png");
-	image.createMaskFromColor(Color(136, 56, 168));
+	Image map_image;
+	map_image.loadFromFile("images/map.png");
 
-	Texture legtexture;
-	legtexture.loadFromImage(image);
+	Texture map;
+	map.loadFromImage(map_image);
 
-	Sprite legs;
-	legs.setTexture(legtexture);
-	legs.setTextureRect(IntRect(0, 180, 60, 40));
-	legs.setPosition(250, 277);
+	Sprite s_map;
+	s_map.setTexture(map);
+
 	float CurrentFrame = 0;
 
 	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
-	Creature player("hero.png", 250, 250, 96.0, 96.0);
+	camera.reset(FloatRect(0, 0, 640, 480));
+
+	Creature player("hero.png", 448, 0, 54.0, 73.0);
 
 	Clock clock;
 	while (window.isOpen())
@@ -45,11 +47,9 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10) 
 				CurrentFrame -= 10;
-			legs.setScale(-1, 1);
-			legs.setTextureRect(IntRect(67 * int(CurrentFrame), 180, 67, 40));
-			legs.move(-0.1*time, 0);
-			player.head.setScale(-1, 1);
-			player.head.setTextureRect(IntRect(67 * int(CurrentFrame), 100, 67, 46));
+			player.sprite.setScale(-1, 1);
+			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 71));
+			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 
 		}
 
@@ -60,11 +60,9 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			legs.setScale(1, 1);
-			legs.setTextureRect(IntRect(67 * int(CurrentFrame), 180, 67, 40));
-			legs.move(0.1*time, 0);
-			player.head.setScale(1, 1);
-			player.head.setTextureRect(IntRect(67 * int(CurrentFrame), 100, 67, 46));
+			player.sprite.setScale(1, 1);
+			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 71));
+			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 
 		} 
 		if (Keyboard::isKeyPressed(Keyboard::Up)) 
@@ -74,8 +72,7 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			legs.setTextureRect(IntRect(67 * int(CurrentFrame), 180, 67, 40));
-			legs.move(0, -0.1*time);
+			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 		}
 		if (Keyboard::isKeyPressed(Keyboard::Down)) 
 		{
@@ -84,15 +81,25 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			legs.setTextureRect(IntRect(67 * int(CurrentFrame), 180, 67, 40));
-			legs.move(0, 0.1*time);
+			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 		}
 
 		player.update(time);
-	
+		window.setView(camera);
 		window.clear();
-		window.draw(legs); 
-		window.draw(player.head);
+		for (int i = 0; i < HEIGHT_MAP; i++)
+			for (int j = 0; j < WIDTH_MAP; j++)
+			{
+				if (TileMap[i][j] == ' ')  s_map.setTextureRect(IntRect(0, 0, 32, 32));
+				if (TileMap[i][j] == 's')  s_map.setTextureRect(IntRect(32, 0, 32, 32));
+				if ((TileMap[i][j] == '0')) s_map.setTextureRect(IntRect(64, 0, 32, 32));
+
+
+				s_map.setPosition(j * 32, i * 32);
+
+				window.draw(s_map);
+			}
+		window.draw(player.sprite);
 		window.display();
 	
 	}
