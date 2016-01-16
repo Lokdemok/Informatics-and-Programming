@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Player.h"
 #include "map.h"
+#include "Player.h"
 #include "Camera.h"
 
 using namespace sf;
@@ -10,21 +10,18 @@ using namespace sf;
 
 int main()
 {
+	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
+	camera.reset(FloatRect(0, 0, 640, 480));
+	
 	Image map_image;
 	map_image.loadFromFile("images/map.png");
-
 	Texture map;
 	map.loadFromImage(map_image);
-
 	Sprite s_map;
 	s_map.setTexture(map);
 
+	Creature player("hero.png", 442, 225, 60.0, 69.0);
 	float CurrentFrame = 0;
-
-	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
-	camera.reset(FloatRect(0, 0, 640, 480));
-
-	Creature player("hero.png", 448, 0, 54.0, 73.0);
 
 	Clock clock;
 	while (window.isOpen())
@@ -39,7 +36,7 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-
+		//отрисовка персонажа
 		if (Keyboard::isKeyPressed(Keyboard::Left)) 
 		{ 
 			player.dir = 1; 
@@ -47,9 +44,7 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10) 
 				CurrentFrame -= 10;
-			player.sprite.setScale(-1, 1);
-			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 71));
-			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
+			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 521, 67, 70));
 
 		}
 
@@ -60,9 +55,7 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			player.sprite.setScale(1, 1);
-			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 71));
-			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
+			player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 70));
 
 		} 
 		if (Keyboard::isKeyPressed(Keyboard::Up)) 
@@ -72,7 +65,6 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 		}
 		if (Keyboard::isKeyPressed(Keyboard::Down)) 
 		{
@@ -81,12 +73,13 @@ int main()
 			CurrentFrame += 0.005*time;
 			if (CurrentFrame > 10)
 				CurrentFrame -= 10;
-			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 		}
+		getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 
 		player.update(time);
 		window.setView(camera);
 		window.clear();
+		//отрисовка карты
 		for (int i = 0; i < HEIGHT_MAP; i++)
 			for (int j = 0; j < WIDTH_MAP; j++)
 			{

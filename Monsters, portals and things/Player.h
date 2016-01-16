@@ -42,12 +42,46 @@ public:
 
 		speed = 0;
 		sprite.setPosition(x, y);
+		interactionWithMap();
 	}
+
 
 	float getcreaturecoordinateX() {	
 		return x;
 	}
 	float getcreaturecoordinateY() {	
 		return y;
+	}
+	void interactionWithMap()
+	{
+
+		for (int i = y / 32; i < (y + h) / 32; i++)
+			for (int j = x / 32; j<(x + w) / 32; j++)//проход по всем квадратам карты+перс может стоять на нескольких квадратах
+			{
+				if (TileMap[i][j] == '0')
+				{
+					if (dy>0)
+					{
+						y = i * 32 - h;
+					}
+					if (dy<0)
+					{
+						y = i * 32 + 32;
+					}
+					if (dx>0)
+					{
+						x = j * 32 - w;
+					}
+					if (dx < 0)
+					{
+						x = j * 32 + 32;
+					}
+				}
+
+				if (TileMap[i][j] == 's') {
+					x = 300; y = 300;
+					TileMap[i][j] = ' ';//убираем камень
+				}
+			}
 	}
 }; 
