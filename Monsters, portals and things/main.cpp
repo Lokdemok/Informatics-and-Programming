@@ -30,6 +30,7 @@ int main()
 	text.setColor(Color::Red);
 	text.setStyle(Text::Bold | Text::Underlined);
 
+	randomMapGenerate();
 	Clock clock;
 	while (window.isOpen())
 	{
