@@ -5,14 +5,14 @@ const int WIDTH_MAP = 40;
 
 String TileMap[HEIGHT_MAP] = {
 	"0000000000000000000000000000000000000000",
-	"0             f                        0",
 	"0                                      0",
-	"0          h                           0",
 	"0                                      0",
-	"0     h                                0",
-	"0                            f         0",
-	"0                 f                    0",
-	"0    f       h                         0",
+	"0                                      0",
+	"0                                      0",
+	"0                                      0",
+	"0                                      0",
+	"0                                      0",
+	"0                                      0",
 	"0                                      0",
 	"0                                      0",
 	"0                                      0",
@@ -31,20 +31,20 @@ String TileMap[HEIGHT_MAP] = {
 	"0000000000000000000000000000000000000000",
 };
 
-void randomMapGenerate() {//рандомно расставляем камни
+void randomMapGenerate() {
 
-	int randomElementX = 0;//случайный элемент по горизонтали
-	int randomElementY = 0;//случ эл-т по вертикали
-	srand(time(0));//рандом	
-	int countStone = 5;//количество камней
+	int randomElementX = 0;
+	int randomElementY = 0;
+	srand(time(0));
+	int countStone = 5;
 
 	while (countStone>0) {
-		randomElementX = 1 + rand() % (WIDTH_MAP - 1);//рандомное по иксу от 1 до ширина карты-1, чтобы не получать числа бордюра карты
-		randomElementY = 1 + rand() % (HEIGHT_MAP - 1);//по игреку так же
+		randomElementX = 1 + rand() % (WIDTH_MAP - 1);
+		randomElementY = 1 + rand() % (HEIGHT_MAP - 1);
 
-		if (TileMap[randomElementY][randomElementX] == ' ') {//если встретили символ пробел, 
-			TileMap[randomElementY][randomElementX] = 's'; //то ставим туда камень.
-														   //std::cout << "coordinate of Stone X:" << randomElementX << "\n" << "coordinate of Stone Y:" << randomElementY << "\n\n";
+		if (TileMap[randomElementY][randomElementX] == ' ') {
+			TileMap[randomElementY][randomElementX] = 's';
+														   
 			countStone--;
 		}
 	}

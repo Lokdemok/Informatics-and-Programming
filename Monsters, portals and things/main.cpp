@@ -7,12 +7,40 @@
 
 using namespace sf;
 
+bool checkPosition(int pos1, int pos2)
+{
+	if (pos1 > pos2)
+		return true;
+	else
+		return false;
+}
 
+bool openGorPortal(int x, int y, int up)
+{
+	bool flag = true;
+	if (x - 75 > 0)
+	{
+		for (int i = (x - 75) / 32; i < (x + 75) / 32 / 32; i++) //от левого до правого края портала
+			if (TileMap[int(y / 32) + up][i] != '0')
+				return false;
+	}
+	else 
+		return false;
+	return true;
+}
+
+void openLPortal(Sprite portal, int x, int y, Color color)
+{
+	portal.setColor(color);
+	portal.setPosition(x - 75, (int(y / 32)) * 32);
+}
 
 int main()
 {
+	bool x, y, L_portalis = false;
 	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
 	camera.reset(FloatRect(0, 0, 640, 480));
+	
 	
 	Image map_image;
 	map_image.loadFromFile("images/map.png");
@@ -20,6 +48,17 @@ int main()
 	map.loadFromImage(map_image);
 	Sprite s_map;
 	s_map.setTexture(map);
+
+	Image portal_image;
+	portal_image.loadFromFile("images/portal.png");
+	portal_image.createMaskFromColor(Color(255, 255, 255));
+	Texture portal;
+	portal.loadFromImage(portal_image);
+	Sprite L_portal;
+	L_portal.setTexture(portal);
+	L_portal.setTextureRect(IntRect(415, 247, 150, 32));
+	Color White = Color(255, 255, 255);
+	Color Blue = Color(153, 217, 234);
 
 	Creature player("hero.png", 442, 225, 60.0, 69.0);
 	float CurrentFrame = 0;
@@ -46,43 +85,8 @@ int main()
 		}
 		//отрисовка персонажа
 		if (player.life) {
-			if (Keyboard::isKeyPressed(Keyboard::Left))
-			{
-				player.dir = 1;
-				player.speed = 0.1;
-				CurrentFrame += 0.005*time;
-				if (CurrentFrame > 10)
-					CurrentFrame -= 10;
-				player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 521, 67, 70));
 
-			}
 
-			if (Keyboard::isKeyPressed(Keyboard::Right))
-			{
-				player.dir = 0;
-				player.speed = 0.1;
-				CurrentFrame += 0.005*time;
-				if (CurrentFrame > 10)
-					CurrentFrame -= 10;
-				player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 70));
-
-			}
-			if (Keyboard::isKeyPressed(Keyboard::Up))
-			{
-				player.dir = 3;
-				player.speed = 0.1;
-				CurrentFrame += 0.005*time;
-				if (CurrentFrame > 10)
-					CurrentFrame -= 10;
-			}
-			if (Keyboard::isKeyPressed(Keyboard::Down))
-			{
-				player.dir = 2;
-				player.speed = 0.1;
-				CurrentFrame += 0.005*time;
-				if (CurrentFrame > 10)
-					CurrentFrame -= 10;
-			}
 			getplayercoordinateforview(player.getcreaturecoordinateX(), player.getcreaturecoordinateY());
 			std::ostringstream healthString;    // объявили переменную
 			healthString << player.health;		//занесли в нее число очков, то есть формируем строку
@@ -113,6 +117,8 @@ int main()
 
 				window.draw(s_map);
 			}
+		if (L_portalis)
+			window.draw(L_portal);
 		window.draw(player.sprite);
 		window.draw(text);
 		window.display();
