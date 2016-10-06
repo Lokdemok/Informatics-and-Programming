@@ -2,124 +2,149 @@
 #include <stdio.h>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <sstream>
 using namespace sf;
 
-class Creature { 
 
+
+class Creature 
+{
 public:
-	float w, h, dx, dy,x,y, speed; 
-	enum { left, right, up, down, jump, stay } state;
-	int armorScore;
-	int health;
-	bool life, onGround,isMove;
-	String File; 
-	Image image;
+	std::vector<Object> obj;//вектор объектов карты
+	float dx, dy, x, y, speed, moveTimer;
+	int w, h, health;
+	bool life, onGround, isMove;
 	Texture texture;
 	Sprite sprite;
-
-	Creature(String FileName, float X, float Y, float W, float H) 
+	String name;
+	Creature(Image &image, String Name, float X, float Y, int W, int H)
 	{
-		speed = 0; armorScore = 0; health = 100, dx = 0, dy = 0;
-		isMove = false; 
-		onGround = false;
-		life = true;
-		File = FileName;
-		w = W; h = H;
-		image.loadFromFile("images/" + File);
-		image.createMaskFromColor(Color(136, 56, 168));
+		x = X; y = Y; w = W; h = H; name = Name; moveTimer = 0;
+		speed = 0; health = 100; dx = 0; dy = 0;
+		life = true; onGround = false; isMove = false;
 		texture.loadFromImage(image);
 		sprite.setTexture(texture);
-		x = X; y = Y;
-		sprite.setTextureRect(IntRect(1, 101, w, h));
 		sprite.setOrigin(w / 2, h / 2);
 	}
 
+	FloatRect getRect() {//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
+		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
+	}
+};
 
-	void control()
+
+class Player :public Creature {
+public:
+	enum { left, right, up, down, jump, stay } state;//добавляем тип перечисления - состояние объекта
+	int playerScore;//эта переменная может быть только у игрока
+
+	Player(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) :Creature(image, Name, X, Y, W, H) 
 	{
-		if (Keyboard::isKeyPressed(Keyboard::Left))
+		playerScore = 0; state = stay;
+		obj = lvl.GetAllObjects(); 
+		if (name == "Player1") 
 		{
-			state = left;
-			speed = 0.1;
-	//		CurrentFrame += 0.005*time;
-	//		if (CurrentFrame > 10)
-	//			CurrentFrame -= 10;
-		//	player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 521, 67, 70));
-
-		}
-
-		if (Keyboard::isKeyPressed(Keyboard::Right))
-		{
-			state = right;
-			speed = 0.1;
-		//	CurrentFrame += 0.005*time;
-		//	if (CurrentFrame > 10)
-		//		CurrentFrame -= 10;
-			//player.sprite.setTextureRect(IntRect(67 * int(CurrentFrame), 101, 67, 70));
-
-		}
-		if ((Keyboard::isKeyPressed(Keyboard::Up)) && (onGround))
-		{
-			state = jump; dy = -0.5; onGround = false;
-			//CurrentFrame += 0.005*time;
-			//if (CurrentFrame > 10)
-			//	CurrentFrame -= 10;
-		}
-		if (Keyboard::isKeyPressed(Keyboard::Down))
-		{
-			state = down;
-			speed = 0.1;
-			//CurrentFrame += 0.005*time;
-			//if (CurrentFrame > 10)
-			//	CurrentFrame -= 10;
+				sprite.setTextureRect(IntRect(288, 161, w, h));
 		}
 	}
 
 
-	void update(float time) 
-	{
-		control();
-		switch (state)
+		void control()
 		{
-		case right: dx = speed; break;
-		case left: dx = -speed; break;
-		case up: break;
-		case down: dx = 0; break;
-		case jump: break;
-		case stay: break;
-		}
-		x += dx*time;
-		checkCollisionWithMap(dx, 0);
-		y += dy*time;
-		checkCollisionWithMap(0, dy);
-		if (!isMove) speed = 0;
-		sprite.setPosition(x + w / 2, y + h / 2); 
-		if (health <= 0) { life = false; }
-		dy = dy + 0.0015*time; 
-	}
-
-
-	float getcreaturecoordinateX() {	
-		return x;
-	}
-	float getcreaturecoordinateY() {	
-		return y;
-	}
-
-
-	void checkCollisionWithMap(float Dx, float Dy)
-	{
-		for (int i = y / 32; i < (y + h) / 32; i++)
-			for (int j = x / 32; j<(x + w) / 32; j++)
+			if (Keyboard::isKeyPressed(Keyboard::Left))
 			{
-				if (TileMap[i][j] == '0')
-				{
-					if (Dy>0) { y = i * 32 - h;  dy = 0; onGround = true; }
-					if (Dy<0) { y = i * 32 + 32;  dy = 0; }
-					if (Dx>0) { x = j * 32 - w; }
-					if (Dx<0) { x = j * 32 + 32; }
-				}
-				else { onGround = false; }
+				state = left;
+				speed = 0.2;
 			}
+
+			if (Keyboard::isKeyPressed(Keyboard::Right))
+			{
+				state = right;
+				speed = 0.2;
+			}
+			if ((Keyboard::isKeyPressed(Keyboard::Up)) && (onGround))
+			{
+				state = jump; dy = -0.7; onGround = false;
+			}
+			if (Keyboard::isKeyPressed(Keyboard::Down))
+			{
+				state = down;
+			}
+		}
+
+		void checkCollisionWithMap(float Dx, float Dy)//ф ция проверки столкновений с картой
+		{
+			for (int i = 0; i<obj.size(); i++)//проходимся по объектам
+				if (getRect().intersects(obj[i].rect))//проверяем пересечение игрока с объектом
+				{
+					if (obj[i].name == "solid")//если встретили препятствие
+					{
+						if (Dy>0) { y = obj[i].rect.top - h;  dy = 0; onGround = true; }
+						if (Dy<0) { y = obj[i].rect.top + obj[i].rect.height;   dy = 0; }
+						if (Dx>0) { x = obj[i].rect.left - w - int(w*0.03); }
+						if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; }
+					}
+				}
+		}
+
+		void update(float time)
+		{
+			control();
+			switch (state)
+			{
+			case right: dx = speed; break;
+			case left: dx = -speed; break;
+			case up: break;
+			case down: dx = 0; break;
+			case jump: break;
+			case stay: break;
+			}
+			x += dx*time;
+			checkCollisionWithMap(dx, 0);
+			y += dy*time;
+			checkCollisionWithMap(0, dy);
+			sprite.setPosition(x + w / 2, y + h / 2);
+			if (health <= 0) { life = false; }
+			if (!isMove) speed = 0;
+			if (life) { setPlayerCoordinateForView(x, y); }
+			dy = dy + 0.0015*time;
+		}
+};
+
+class Enemy :public Creature {
+public:
+	Enemy(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) :Creature(image, Name, X, Y, W, H) {
+		obj = lvl.GetObjects("solid");
+		if (name == "EasyEnemy") {
+			sprite.setTextureRect(IntRect(1, 81, w, h));
+			dx = 0.1;//даем скорость.этот объект всегда двигается
+		}
+	}
+
+	void checkCollisionWithMap(float Dx, float Dy)//ф ция проверки столкновений с картой
+	{
+		for (int i = 0; i<obj.size(); i++)//проходимся по объектам
+			if (getRect().intersects(obj[i].rect))//проверяем пересечение игрока с объектом
+			{
+				if (obj[i].name == "solid")//если встретили препятствие
+				{
+					if (Dy>0) { y = obj[i].rect.top - h;  dy = 0; onGround = true; }
+					if (Dy<0) { y = obj[i].rect.top + obj[i].rect.height;   dy = 0; }
+					if (Dx>0) { x = obj[i].rect.left - w;  dx = -0.1; sprite.scale(-1, 1); }
+					if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; dx = 0.1; sprite.scale(-1, 1); }
+				}
+			}
+	}
+
+	void update(float time)
+	{
+		if (name == "EasyEnemy") {//для персонажа с таким именем логика будет такой
+
+								  //moveTimer += time;if (moveTimer>3000){ dx *= -1; moveTimer = 0; }//меняет направление примерно каждые 3 сек
+			x += dx*time;
+			checkCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
+			sprite.setPosition(x + w / 2, y + h / 2); //задаем позицию спрайта в место его центра
+			if (health <= 0) { life = false; }
+		}
 	}
 };

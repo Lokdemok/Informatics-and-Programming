@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="150" height="50" tilewidth="32" tileheight="32" nextobjectid="1">
+ <tileset firstgid="1" name="tiles_large" tilewidth="32" tileheight="32" tilecount="300" columns="20">
+  <image source="../images/tiles_large.png" width="640" height="480"/>
+ </tileset>
+ <layer name="Слой тайлов 1" width="150" height="50">
+  <data encoding="base64" compression="zlib">
+   eJztXUtyEzEQ7QBF1WRv2LIVobhB4CYpnyEn8Co7OMOEO8A623CqSGUb5KlYo8/rz3i0eOXY5dF0v35St6SRsyGiDwW4JXr67F87Os7Ba2S7oTJdffT47jGsHFcebw3YYQ13HpsDSnWlbbsFbDoXr+Keuq5a0HX1Oh5o3bqqyWPhmjcH+BqCvkXv15YTYy6mCNysVVc1442j09rU62o8vr8x4JMkYi6m8Lx8sq6rdx7vGdptzWOl13P5YRHIPFjI2/aA2e9+8fgK8heZx0p1hfYDkXe55rRIXZXwpjVHd4TLY67iGmTcEHmDa+6hVbdbmEtZsEHb9tx2SnN415W+RnKByuE17ZTmcEFdPXHO0WvyqqO2PCady4O9iBze2M5oTVcoXs75IT32aI53S6iv4njnAFGrov3purLlQ2j3jmi3RF401r6trLc7wvTvmnZy8n+I772CrhC8hDak17457rm05yJyxoTwnQc+XW2H82uf45BZA6J81eDXqu3c9obvnNs7nCL0qesIc/eX7IddV7wozf+b/XdGjnpdki9XYZ/mPa3UaSW+luR/ztgvoR9OIbU3XBonS8jNg8DYV619zsVSMp8i94aRcapBSx9JXauhK0fl/XAullbHPZTeU/61aKOlj6SudYlYSsTMSl3L+SwIwr9UnDTGT0vcoNvWfE5Ku91LACc3jupr0HAtqq5F+mhlHmd9LZW5z40DYO2zxkau+DuyMY+zPlZat6/WRon4cz0TdwlxO2efpWf8g0ZatKBdX6Fqbys5uIUbgXnIdsg8NyEV/1I4ks194X4WcrAm53OQrDul43/JcbNun3VeMrEdhMZca/zNjQtg+7J51uZFgltOONIdg+fih17bSfDMem7CIrdWgegPkrqaaYvt3ITW3LWFO835dq3dJeOCoK7Y7iu4hwYbczX3/Wq5d5Q/LjTGt5pnizkkYwxhPavGCXQNwpwHq3l2BuNQc6bXWt9I8Y3sD4bqqynGAXhuQgMcupKouxB2O0rrEbmPs6T+i8ActzXIGTNbtScRJ+Q+DgfPxjEOCmNua80vESewdlV47pDBT6Ldj8yzpmvLXQmujlC3ySp+eX4ePXLOkK5dV38OXA0H5J65DXjcX6/ugyRXv7uusvDX8/T8X1Mnupq+Hv8+vn/eX6/ugzRXnLpK/Xb3wrALuIp0ddw/i/mbfnZB/hcj5gGtK0f6/9sHhF2Ai3QVfLuhU11NP7sg/4sR84DWlSSuO8xiybpaGlJ8rwVcZ+uW+DwVCl1X/36nCFLPxb9ti2qzY5kIz0y8AADXo18=
+  </data>
+ </layer>
+</map>
