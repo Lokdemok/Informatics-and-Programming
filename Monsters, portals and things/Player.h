@@ -26,7 +26,7 @@ public:
 		sprite.setTexture(texture);
 		sprite.setOrigin(w / 2, h / 2);
 	}
-
+	virtual void update(float time) = 0;
 	FloatRect getRect() {//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
 		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
 	}
@@ -37,23 +37,30 @@ class Player :public Creature {
 public:
 	enum { left, right, up, down, jump, stay } state;//добавляем тип перечисления - состояние объекта
 	int playerScore;//эта переменная может быть только у игрока
-
+	int SpriteW = 33;
+	int SpriteH = 30;
+	float baseX = 290;
+	float baseY = 128;
 	Player(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) :Creature(image, Name, X, Y, W, H) 
 	{
 		playerScore = 0; state = stay;
 		obj = lvl.GetAllObjects(); 
 		if (name == "Player1") 
 		{
-				sprite.setTextureRect(IntRect(288, 161, w, h));
+				sprite.setTextureRect(IntRect(baseX + SpriteW, baseY, SpriteW, SpriteH));
 		}
 	}
 
 
-		void control()
+		void control(float time)
 		{
+			float currentFrame = 0;
 			if (Keyboard::isKeyPressed(Keyboard::Left))
 			{
 				state = left;
+				/*currentFrame += 0.005*time;
+				if (currentFrame > 3) currentFrame -= 3;
+				sprite.setTextureRect(IntRect(baseX + (SpriteW * int(currentFrame)), baseY, SpriteW, SpriteH));*/
 				speed = 0.2;
 			}
 
@@ -89,7 +96,7 @@ public:
 
 		void update(float time)
 		{
-			control();
+			control(time);
 			switch (state)
 			{
 			case right: dx = speed; break;
@@ -115,9 +122,9 @@ class Enemy :public Creature {
 public:
 	Enemy(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) :Creature(image, Name, X, Y, W, H) {
 		obj = lvl.GetObjects("solid");
-		if (name == "EasyEnemy") {
+		if (name == "easyEnemy") {
 			sprite.setTextureRect(IntRect(1, 81, w, h));
-			dx = 0.1;//даем скорость.этот объект всегда двигается
+			dx = -0.1;//даем скорость.этот объект всегда двигается
 		}
 	}
 
@@ -136,9 +143,11 @@ public:
 			}
 	}
 
+
+
 	void update(float time)
 	{
-		if (name == "EasyEnemy") {//для персонажа с таким именем логика будет такой
+		if (name == "easyEnemy") {//для персонажа с таким именем логика будет такой
 
 								  //moveTimer += time;if (moveTimer>3000){ dx *= -1; moveTimer = 0; }//меняет направление примерно каждые 3 сек
 			x += dx*time;

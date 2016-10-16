@@ -1,7 +1,9 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include "iostream"
 #include "level.h"
+#include "portal.h"
 #include <vector>
 #include <list>
 //#include "map.h"
@@ -58,14 +60,19 @@ int main()
 	easyEnemyImage.createMaskFromColor(Color(88, 152, 144));
 	easyEnemyImage.createMaskFromColor(Color(255, 255, 255));
 
-	Object playerObject = lvl.GetObject("player");//объект игрока на нашей карте.задаем координаты игроку в начале при помощи него
-	Object easyEnemyObject = lvl.GetObject("easyEnemy");
-	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 31);//передаем координаты прямоугольника player из карты в координаты нашего игрока
-	Enemy easyEnemy(easyEnemyImage, "EasyEnemy", lvl, easyEnemyObject.rect.left, easyEnemyObject.rect.top, 52, 26);//передаем координаты прямоугольника easyEnemy из карты в координаты нашего врага
+	Image portalImage;
+	portalImage.loadFromFile("images/portal.png");
+	portalImage.createMaskFromColor(Color(0, 128, 0));
+	bool lp = false;
 
-	/*std::list<Entity*>  entities;//создаю список, сюда буду кидать объекты.например врагов.
-	std::list<Entity*>::iterator it;//итератор чтобы проходить по эл-там списка
-	*/
+	Object playerObject = lvl.GetObject("player");//объект игрока на нашей карте.задаем координаты игроку в начале при помощи него
+	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 31);//передаем координаты прямоугольника player из карты в координаты нашего игрока
+
+	std::list<Creature*>  entities;//создаю список, сюда буду кидать объекты.например врагов.
+	std::list<Creature*>::iterator it;//итератор чтобы проходить по эл-там списка
+	std::vector<Object> e = lvl.GetObjects("easyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
+	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
+		entities.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 52, 26));//и закидываем в список всех наших врагов с карты
 
 	Clock clock;
 	while (window.isOpen())
@@ -81,13 +88,32 @@ int main()
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
+			if (event.type == Event::MouseButtonPressed)
+			{
+				if (event.key.code == Mouse::Left)
+				{
+					Vector2i pixelPos = Mouse::getPosition(window);
+					Vector2f pos = window.mapPixelToCoords(pixelPos);
+					Portal leftPortal(portalImage, "Left", pos.x, pos.y, 39, 45);
+					lp = true;
+				}
+			}
 		}
 		player.update(time);// Player update function	
-		easyEnemy.update(time);//easyEnemy update function
+		for (it = entities.begin(); it != entities.end(); it++) 
+		{ 
+			(*it)->update(time); 
+		}
+		if (lp)
+			leftPortal.update(time);
+		//easyEnemy.update(time);//easyEnemy update function
 		window.setView(camera);
 		window.clear();
 		lvl.Draw(window);
-		window.draw(easyEnemy.sprite);
+		for (it = entities.begin(); it != entities.end(); it++) 
+		{
+			window.draw((*it)->sprite); //рисуем entities объекты (сейчас это только враги)
+		}
 		window.draw(player.sprite);
 		window.display();
 	}

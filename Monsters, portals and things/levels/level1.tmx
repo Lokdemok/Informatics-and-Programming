@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="120" height="30" tilewidth="32" tileheight="32" nextobjectid="29">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="120" height="30" tilewidth="32" tileheight="32" nextobjectid="31">
  <tileset firstgid="1" name="tiles_large" tilewidth="32" tileheight="32" tilecount="300" columns="20">
-  <image source="../images/tiles_large.png" width="640" height="480"/>
+  <image source="../images/tileslarge.png" width="640" height="480"/>
  </tileset>
  <layer name="Layer tiles 1" width="120" height="30">
   <data encoding="csv">
@@ -61,5 +61,7 @@
   <object id="22" name="solid" x="3744" y="413" width="240" height="600"/>
   <object id="27" name="easyEnemy" x="1952" y="739" width="45" height="25"/>
   <object id="28" name="player" x="695" y="790" width="57" height="51"/>
+  <object id="29" name="easyEnemy" x="2052" y="684" width="65" height="40"/>
+  <object id="30" name="easyEnemy" x="1626" y="673" width="67" height="37"/>
  </objectgroup>
 </map>
