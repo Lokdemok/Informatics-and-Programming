@@ -1,44 +1,124 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include "iostream"
 #include "level.h"
 #include "portal.h"
 #include <vector>
 #include <list>
-//#include "map.h"
-#include "Camera.h"
 #include "Player.h"
+//#include "map.h"
+
 
 using namespace sf;
+using namespace std;
 
-/*bool checkPosition(int pos1, int pos2)
-{
-	if (pos1 > pos2)
-		return true;
-	else
-		return false;
-}
 
-bool openGorPortal(int x, int y, int up)
+void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
 {
-	bool flag = true;
-	if (x - 75 > 0)
+	vector<Enemy*>::iterator it;
+	for (it = enemy.begin(); it != enemy.end();)
 	{
-		for (int i = (x - 75) / 32; i < (x + 75) / 32 / 32; i++) //от левого до правого края портала
-			if (TileMap[int(y / 32) + up][i] != '0')
-				return false;
+		Enemy *b = *it;
+	//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
+		b->Update(time);
+		if (!b->life)
+		{
+			it = enemy.erase(it);
+			delete b;
+		}
+		else
+			it++;
 	}
-	else 
-		return false;
-	return true;
 }
 
-void openLPortal(Sprite portal, int x, int y, Color color)
+void UpdatePortals(vector <Portal*> & portal, float time)
 {
-	portal.setColor(color);
-	portal.setPosition(x - 75, (int(y / 32)) * 32);
-}*/
+	vector<Portal*>::iterator it;
+	for (it = portal.begin(); it != portal.end();)
+	{
+		Portal *b = *it;
+		//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
+		b->Update(time);
+		if (!b->life)
+		{
+			it = portal.erase(it);
+			delete b;
+		}
+		else
+			it++;
+	}
+}
+
+void DrawEnemies(RenderWindow & window, vector<Enemy*> & enemy)
+{
+	vector<Enemy*>::iterator it_e;
+	for (it_e = enemy.begin(); it_e != enemy.end(); it_e++)
+		window.draw((*it_e)->sprite);
+}
+
+void DrawPortals(RenderWindow & window, vector<Portal*> & portal)
+{
+	vector<Portal*>::iterator it_p;
+	for (it_p = portal.begin(); it_p != portal.end(); it_p++)
+		window.draw((*it_p)->sprite);
+}
+
+void CreatePortal(vector<Portal*> & portals, Image portalImage, String name, Level lvl, Vector2f pos, int portalW, int portalH)
+{
+	vector<Portal*>::iterator it_p;
+	for (it_p = portals.begin(); it_p != portals.end(); it_p++)
+		if ((*it_p)->name == name)
+		{
+			(*it_p)->life = false;
+		}
+	portals.push_back(new Portal(portalImage, name, lvl, pos.x, pos.y, portalW, portalH));
+
+}
+
+void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &portals)
+{
+	vector<Enemy*>::iterator it_e;
+	vector<Portal*>::iterator it_p;
+	for (it_e = enemy.begin(); it_e != enemy.end(); it_e++)
+	{
+		Enemy *enemy = *it_e;
+		if (hero.GetRect().intersects(enemy->GetRect()))
+		{
+			//////////////// ??????????? ????? ? ??????? ? ?????????? ????? /////////////////
+			hero.health -= enemy->attack;
+		}
+	}
+}
+void TeleportPlayer(Player &player, vector<Portal*> &portals)
+{
+	player.isTeleport = false;
+	if (portals.size() >= 2)
+	{
+		String namePortal;
+		vector<Portal*>::iterator it_p;
+		for (it_p = portals.begin(); it_p != portals.end(); it_p++)
+		{
+			if (player.GetRect().intersects((*it_p)->GetRect()))
+			{
+				namePortal = (*it_p)->name;
+			}
+		}
+		if (namePortal.getSize() != 0)
+		{
+			for (it_p = portals.begin(); it_p != portals.end(); it_p++)
+			{
+				if (!((*it_p)->name == namePortal))
+				{
+					player.x = (*it_p)->x - ((*it_p)->w / 2);
+					player.y = (*it_p)->y - ((*it_p)->h / 2);
+				}
+			}
+		}
+	}
+}
+
 
 int main()
 {
@@ -61,20 +141,28 @@ int main()
 	easyEnemyImage.createMaskFromColor(Color(255, 255, 255));
 
 	Image portalImage;
-	portalImage.loadFromFile("images/portal.png");
+	portalImage.loadFromFile("images/portals.png");
 	portalImage.createMaskFromColor(Color(0, 128, 0));
-	bool lp = false;
+	int portalH = 49;
+	int portalW = 35;
+
+	Image lineImage;
+	lineImage.loadFromFile("images/portals.png");
 
 	Object playerObject = lvl.GetObject("player");//объект игрока на нашей карте.задаем координаты игроку в начале при помощи него
-	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 31);//передаем координаты прямоугольника player из карты в координаты нашего игрока
+	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);//передаем координаты прямоугольника player из карты в координаты нашего игрока
 
-	std::list<Creature*>  entities;//создаю список, сюда буду кидать объекты.например врагов.
-	std::list<Creature*>::iterator it;//итератор чтобы проходить по эл-там списка
+	vector <Enemy*>  enemies;//создаю список, сюда буду кидать объекты.например врагов.
+	vector <Enemy*>::iterator it;//итератор чтобы проходить по эл-там списка
 	std::vector<Object> e = lvl.GetObjects("easyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
 	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
-		entities.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 52, 26));//и закидываем в список всех наших врагов с карты
+		enemies.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 52, 26));//и закидываем в список всех наших врагов с карты
 
+	vector <Portal*> portals;
+	vector <Portal*>::iterator it_p;
 	Clock clock;
+
+
 	while (window.isOpen())
 	{
 
@@ -82,38 +170,42 @@ int main()
 		float time = clock.getElapsedTime().asMicroseconds();
 		clock.restart();
 		time = time / 800;
-
 		Event event;
+		Vector2i pixelPos = Mouse::getPosition(window);
+		Vector2f pos = window.mapPixelToCoords(pixelPos);
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
 			if (event.type == Event::MouseButtonPressed)
 			{
-				if (event.key.code == Mouse::Left)
+				pos.y = player.teleportY;
+				if ((event.key.code == Mouse::Left) && (player.openPortal))
 				{
-					Vector2i pixelPos = Mouse::getPosition(window);
-					Vector2f pos = window.mapPixelToCoords(pixelPos);
-					Portal leftPortal(portalImage, "Left", pos.x, pos.y, 39, 45);
-					lp = true;
+					CreatePortal(portals, portalImage, "blue", lvl, pos, portalW, portalH);
+				}
+				else if (event.key.code == Mouse::Right && (player.openPortal))
+				{
+					CreatePortal(portals, portalImage, "yellow", lvl, pos, portalW, portalH);
 				}
 			}
+			if (player.isTeleport)
+			{
+				TeleportPlayer(player, portals);
+			}			
 		}
-		player.update(time);// Player update function	
-		for (it = entities.begin(); it != entities.end(); it++) 
-		{ 
-			(*it)->update(time); 
+		EntitiesIntersection(player, enemies, portals);
+		if (player.life)
+		{
+			player.Update(time, pos, portalH);// Player update function	
+			UpdateEnemies(enemies, time, player);
+			UpdatePortals(portals, time);
 		}
-		if (lp)
-			leftPortal.update(time);
-		//easyEnemy.update(time);//easyEnemy update function
 		window.setView(camera);
 		window.clear();
 		lvl.Draw(window);
-		for (it = entities.begin(); it != entities.end(); it++) 
-		{
-			window.draw((*it)->sprite); //рисуем entities объекты (сейчас это только враги)
-		}
+		DrawEnemies(window, enemies);
+		DrawPortals(window, portals);
 		window.draw(player.sprite);
 		window.display();
 	}
