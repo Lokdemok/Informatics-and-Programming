@@ -9,6 +9,7 @@
 #include <list>
 #include "Player.h"
 #include "Enemy.h"
+#include "Bullet.h"
 //#include "map.h"
 
 
@@ -52,6 +53,24 @@ void UpdatePortals(vector <Portal*> & portal, float time)
 	}
 }
 
+void UpdateBullets(vector <Bullet*> & bullet, float time)
+{
+	vector<Bullet*>::iterator it;
+	for (it = bullet.begin(); it != bullet.end();)
+	{
+		Bullet *b = *it;
+		//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
+		b->Update(time);
+		if (!b->life)
+		{
+			it = bullet.erase(it);
+			delete b;
+		}
+		else
+			it++;
+	}
+}
+
 void DrawEnemies(RenderWindow & window, vector<Enemy*> & enemy)
 {
 	vector<Enemy*>::iterator it_e;
@@ -66,6 +85,13 @@ void DrawPortals(RenderWindow & window, vector<Portal*> & portal)
 		window.draw((*it_p)->sprite);
 }
 
+void DrawBullets(RenderWindow & window, vector<Bullet*> & bullet)
+{
+	vector<Bullet*>::iterator it_b;
+	for (it_b = bullet.begin(); it_b != bullet.end(); it_b++)
+		window.draw((*it_b)->sprite);
+}
+
 void CreatePortal(vector<Portal*> & portals, Image portalImage, String name, Level lvl, Vector2f pos, int portalW, int portalH)
 {
 	vector<Portal*>::iterator it_p;
@@ -78,10 +104,11 @@ void CreatePortal(vector<Portal*> & portals, Image portalImage, String name, Lev
 
 }
 
-void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &portals)
+void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &portals, vector<Bullet*> &bullets)
 {
 	vector<Enemy*>::iterator it_e;
 	vector<Portal*>::iterator it_p;
+	vector<Bullet*>::iterator it_b;
 	for (it_e = enemy.begin(); it_e != enemy.end(); it_e++)
 	{
 		Enemy *enemy = *it_e;
@@ -100,6 +127,24 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 				enemy->dx *= -1;
 			}
 		}
+		for (it_b = bullets.begin(); it_b != bullets.end(); it_b++)
+		{
+			Bullet *bullet = *it_b;
+			if (hero.GetRect().intersects(bullet->GetRect()) && (!hero.isInvulnerability))
+			{
+				hero.health -= bullet->attack;
+				hero.isInvulnerability = true;
+				std::cout << hero.health << "\n";
+				bullet->life = false;
+			}
+			if (bullet->GetRect().intersects(enemy->GetRect()))
+			{
+				enemy->health -= bullet->attack;
+				std::cout << "enemy attacked\n";
+				bullet->life = false;
+			}
+		}
+
 	}
 }
 void TeleportPlayer(Player &player, vector<Portal*> &portals)
@@ -155,6 +200,10 @@ int main()
 	flyEnemyImage.loadFromFile("images/enemy2.png");
 	flyEnemyImage.createMaskFromColor(Color(255, 255, 255));
 
+	Image bulletImage;
+	bulletImage.loadFromFile("images/bullet.png");
+	bulletImage.createMaskFromColor(Color(163, 73, 164));
+
 	Image portalImage;
 	portalImage.loadFromFile("images/portals.png");
 	portalImage.createMaskFromColor(Color(0, 128, 0));
@@ -165,7 +214,7 @@ int main()
 	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);//передаем координаты прямоугольника player из карты в координаты нашего игрока
 
 	vector <Enemy*>  enemies;//создаю список, сюда буду кидать объекты.например врагов.
-	vector <Enemy*>::iterator it;//итератор чтобы проходить по эл-там списка
+	vector <Enemy*>::iterator it_e;//итератор чтобы проходить по эл-там списка
 	std::vector<Object> e = lvl.GetObjects("easyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
 	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
 		enemies.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 53, 29));//и закидываем в список всех наших врагов с карты
@@ -176,6 +225,8 @@ int main()
 
 	vector <Portal*> portals;
 	vector <Portal*>::iterator it_p;
+	vector <Bullet*> bullets;
+	vector <Bullet*>::iterator it_b;
 	Clock clock;
 
 
@@ -193,6 +244,7 @@ int main()
 				window.close();
 			if (event.type == Event::MouseButtonPressed)
 			{
+				cout << "mouse\n";
 				pos.y = player.teleportY;
 				if ((event.key.code == Mouse::Left) && (player.openPortal))
 				{
@@ -206,20 +258,41 @@ int main()
 			if (player.isTeleport)
 			{
 				TeleportPlayer(player, portals);
-			}			
+				cout << "telepoet\n";
+			}
+
 		}
-		EntitiesIntersection(player, enemies, portals);
+		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
+		{
+			if ((*it_e)->name == "flyEnemy" && (*it_e)->isShoot)
+			{
+				float x, y;
+				if ((*it_e)->x > player.x)
+					x = (*it_e)->x;
+				else
+					x = (*it_e)->x + (*it_e)->w;
+				if ((*it_e)->y > player.y)
+					y = (*it_e)->y;
+				else
+					y = (*it_e)->y + (*it_e)->h;
+				bullets.push_back(new Bullet(bulletImage, "bullet", lvl, x, y, 14, 14, player.x, player.y));
+				cout << "shoot\n";
+			}
+		}
+		EntitiesIntersection(player, enemies, portals, bullets);
 		if (player.life)
 		{
 			player.Update(time, pos, portalH);// Player update function	
 			UpdateEnemies(enemies, time, player);
 			UpdatePortals(portals, time);
+			UpdateBullets(bullets, time);
 		}
 		window.setView(camera);
 		window.clear();
 		lvl.Draw(window);
 		DrawEnemies(window, enemies);
 		DrawPortals(window, portals);
+		DrawBullets(window, bullets);
 		window.draw(player.sprite);
 		window.display();
 	}

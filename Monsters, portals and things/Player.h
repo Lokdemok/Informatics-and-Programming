@@ -73,22 +73,26 @@ public:
 			{
 				state = left;
 				speed = 0.2;
+				std::cout << "left\n";
 			}
 
 			if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::D))
 			{
 				state = right;
 				speed = 0.2;
+				std::cout << "right\n";
 			}
 			if (((Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::W))) && (onGround))
 			{
 				state = jump; 
 				dy = -0.7; 
 				onGround = false;
+				std::cout << "jump\n";
 			}
 			if (Keyboard::isKeyPressed(Keyboard::E) && (onGround))
 			{
 				isTeleport = true;
+				std::cout << "open\n";
 			}
 		}
 

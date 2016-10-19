@@ -25,10 +25,15 @@ public:
 	Texture texture;
 	bool life;
 	bool watchPlayer;
+	bool isShoot;
+	bool isLeft;
 	int spriteW;
 	int spriteH = 31;
 	float imageX = 320;
 	float imageY = 128;
+	float shootTimer;
+	int countNextShoot;
+	float timeRecharge = 3000;
 	int attack;
 	enum  enemyStates { left, right, stay } state;
 
@@ -51,7 +56,7 @@ public:
 			health = 100;
 			attack = 10;
 			dx = -0.1;
-			numFrames = 9;//даем скорость.этот объект всегда двигается
+			numFrames = 9;
 		}
 		if (name == "flyEnemy")
 		{
@@ -62,9 +67,10 @@ public:
 			attack = 10;
 			dx = 0;
 			state = left;
-			distanceView = 300;
+			distanceView = 2000;
 			watchPlayer = false;
-			numFrames = 16;//даем скорость.этот объект всегда двигается
+			countNextShoot = 0;
+			numFrames = 16;
 		}
 	}
 
@@ -91,13 +97,11 @@ public:
 
 	void Update(float time, Vector2f pos)
 	{
+		currentFrame += time * 0.008;
 		if (name == "easyEnemy")
-		{//для персонажа с таким именем логика будет такой
-
-		 //moveTimer += time;if (moveTimer>3000){ dx *= -1; moveTimer = 0; }//меняет направление примерно каждые 3 сек
+		{
 			x += dx*time;
 			CheckCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
-			currentFrame += time * 0.008;
 			if (currentFrame >= numFrames)
 			{
 				currentFrame = 0;
@@ -106,7 +110,6 @@ public:
 
 		if (name == "flyEnemy")
 		{
-			currentFrame += time * 0.008;
 			if (currentFrame >= numFrames)
 			{
 				currentFrame = 0;
@@ -120,7 +123,16 @@ public:
 				}
 
 			}
-			if (CheckWatchPlayer(obj, pos))
+			if (shootTimer != 0)
+			{
+				isShoot = false;
+				shootTimer += time;
+				if (shootTimer >= timeRecharge)
+				{
+					shootTimer = 0;
+				}
+			}
+			if (CheckWatchPlayer(obj, pos) )
 			{
 				watchPlayer = true;
 				sprite.setColor(Color::Red);
@@ -132,21 +144,25 @@ public:
 				{
 					SetScale(right, Vector2f(-1, 1));
 				}
+				if (shootTimer == 0)
+				{
+					isShoot = true;
+					shootTimer = 1;
+				}
 			}
 			else
 			{
 				watchPlayer = false;
 				sprite.setColor(Color::White);
 			}
+			if (state == left)
+				isLeft = true;
+			else
+				isLeft = false;
 		}
 		sprite.setTextureRect(IntRect(imageX + w * int(currentFrame), imageY, w, h));
 		sprite.setPosition(x + w / 2, y + h / 2); //задаем позицию спрайта в место его центра
 		if (health <= 0) { life = false; }
-		//для персонажа с таким именем логика будет такой
-
-		//moveTimer += time;if (moveTimer>3000){ dx *= -1; moveTimer = 0; }//меняет направление примерно каждые 3 сек
-		//x += dx*time;
-		//CheckCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
 	}
 
 	void SetScale(enemyStates newState, Vector2f direction)
@@ -177,26 +193,13 @@ public:
 					}
 				}
 			}
+			return true;
 		}
-		return true;
-	}
-
-	RectangleShape CreateAim(Vector2f pos)
-	{
-		float distance;
-		distance = sqrt((pos.x - x)*(pos.x - x) + (pos.y - y)*(pos.y - y));//считаем дистанцию (длину от точки А до точки Б). формула длины вектора
-		watchPlayer == true;
-		float dxLine = pos.x - x;//вектор , колинеарный прямой, которая пересекает спрайт и курсор
-		float dyLine = pos.y - y;//он же, координата y
-		float rotation = (atan2(dyLine, dxLine)) * 180 / 3.14159265;
-		RectangleShape line(sf::Vector2f(distance - 0.05 * distance, 1));//получаем угол в радианах и переводим его в градусы
-		line.rotate(rotation);
-		line.setPosition(x, y + h / 3);
-		return line;
+		return false;
 	}
 
 	FloatRect GetRect()
-	{//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
+	{
+		return FloatRect(x, y, w, h);//для проверки столкновений 
 	}
 };
