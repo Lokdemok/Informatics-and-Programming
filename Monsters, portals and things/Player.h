@@ -7,33 +7,6 @@
 using namespace sf;
 
 
-
-class Entity 
-{
-public:
-	std::vector<Object> obj;//вектор объектов карты
-	float dx, dy, x, y, speed, moveTimer;
-	int w, h, health;
-	bool life, onGround, isMove;
-	Texture texture;
-	Sprite sprite;
-	String name;
-	Entity(Image &image, String Name, float X, float Y, int W, int H)
-	{
-		x = X; y = Y; w = W; h = H; name = Name; moveTimer = 0;
-		speed = 0; health = 100; dx = 0; dy = 0;
-		life = true; onGround = false; isMove = false;
-		texture.loadFromImage(image);
-		sprite.setTexture(texture);
-		sprite.setOrigin(w / 2, h / 2);
-	}
-	virtual void Update(float time) = 0;
-	FloatRect getRect() {//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
-	}
-};
-
-
 class Player 
 {
 public:
@@ -49,6 +22,9 @@ public:
 	bool isMove;
 	bool isTeleport;
 	bool openPortal;
+	bool isInvulnerability;
+	float countInvulnerability = 0;
+	float durationInvulnerability = 300;
 	int w;
 	int h;
 	String name;
@@ -91,7 +67,7 @@ public:
 	}
 
 
-		void control(float time)
+		void Control(float time)
 		{
 			if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A))
 			{
@@ -116,7 +92,7 @@ public:
 			}
 		}
 
-		void checkCollisionWithMap(float Dx, float Dy)//ф ция проверки столкновений с картой
+		void CheckCollisionWithMap(float Dx, float Dy)//ф ция проверки столкновений с картой
 		{
 			for (int i = 0; i<obj.size(); i++)//проходимся по объектам
 				if (GetRect().intersects(obj[i].rect))//проверяем пересечение игрока с объектом
@@ -133,7 +109,7 @@ public:
 
 		void Update(float time, Vector2f pos, int portalH)
 		{
-			control(time);
+			Control(time);
 			switch (state)
 			{
 				case right: 
@@ -154,18 +130,14 @@ public:
 			}
 			currentFrame += time * 0.005;
 			x += dx*time;
-			checkCollisionWithMap(dx, 0);
+			CheckCollisionWithMap(dx, 0);
 			y += dy*time;
-			checkCollisionWithMap(0, dy);
+			CheckCollisionWithMap(0, dy);
 			sprite.setPosition(x + w / 2, y + h / 2);
-			if (health <= 0) { life = false; std::cout << "death"; }
+			if (health <= 0) { life = false; }
 			if (!isMove) speed = 0;
 			if (life) { setPlayerCoordinateForView(x, y); }
 			dy = dy + 0.0015*time;
-			if (currentFrame >= 2 || !onGround)
-			{
-				currentFrame = 0;
-			}
 			teleportY = CooordinateYPortal(obj, pos, portalH);
 			if (teleportY != -1)
 			{
@@ -177,6 +149,25 @@ public:
 				sprite.setColor(Color::Color(255, 255, 255, 255));
 				openPortal = false;
 			}
+			if (isInvulnerability)
+			{
+					if (currentFrame <= 1)
+					{
+						sprite.setColor(Color::Color(255, 255, 255, 100));
+						countInvulnerability++;
+					}
+					else
+						sprite.setColor(Color::Color(255, 255, 255, 255));
+					if (countInvulnerability >= durationInvulnerability)
+					{
+						countInvulnerability = 0;
+						isInvulnerability = false;
+					}
+			}
+			if (currentFrame >= 2 || !onGround)
+			{
+				currentFrame = 0;
+			}
 
 		}
 
@@ -185,9 +176,6 @@ public:
 			return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
 		}
 
-		FloatRect GetView() {//ф-ция получения поля зрения врага.
-			return FloatRect(x - 300, y - 300, w + 600, h + 600);// vec вектор взгляда героя
-		}
 
 		int CooordinateYPortal(std::vector<Object> obj, Vector2f pos, int portalH)//ф ция проверки столкновений с картой
 		{
@@ -244,49 +232,3 @@ public:
 		}
 };
 
-class Enemy :public Entity {
-public:
-	int attack;
-	Enemy(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) :Entity(image, Name, X, Y, W, H) {
-		obj = lvl.GetObjects("solid");
-		if (name == "easyEnemy") {
-			sprite.setTextureRect(IntRect(1, 81, w, h));
-			attack = 10;
-			dx = -0.1;//даем скорость.этот объект всегда двигается
-		}
-	}
-
-	void checkCollisionWithMap(float Dx, float Dy)//ф ция проверки столкновений с картой
-	{
-		for (int i = 0; i<obj.size(); i++)//проходимся по объектам
-			if (getRect().intersects(obj[i].rect))//проверяем пересечение игрока с объектом
-			{
-				if (obj[i].name == "solid")//если встретили препятствие
-				{
-					if (Dy>0) { y = obj[i].rect.top - h;  dy = 0; onGround = true; }
-					if (Dy<0) { y = obj[i].rect.top + obj[i].rect.height;   dy = 0; }
-					if (Dx>0) { x = obj[i].rect.left - w;  dx = -0.1; sprite.scale(-1, 1); }
-					if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; dx = 0.1; sprite.scale(-1, 1); }
-				}
-			}
-	}
-
-
-
-	void Update(float time)
-	{
-		if (name == "easyEnemy") {//для персонажа с таким именем логика будет такой
-
-								  //moveTimer += time;if (moveTimer>3000){ dx *= -1; moveTimer = 0; }//меняет направление примерно каждые 3 сек
-			x += dx*time;
-			checkCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
-			sprite.setPosition(x + w / 2, y + h / 2); //задаем позицию спрайта в место его центра
-			if (health <= 0) { life = false; }
-		}
-	}
-
-	FloatRect GetRect()
-	{//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
-	}
-};

@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="level.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="Player.h" />

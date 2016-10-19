@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 #include "Player.h"
+#include "Enemy.h"
 //#include "map.h"
 
 
@@ -22,7 +23,7 @@ void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
 	{
 		Enemy *b = *it;
 	//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
-		b->Update(time);
+		b->Update(time, Vector2f(hero.x, hero.y));
 		if (!b->life)
 		{
 			it = enemy.erase(it);
@@ -86,8 +87,18 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 		Enemy *enemy = *it_e;
 		if (hero.GetRect().intersects(enemy->GetRect()))
 		{
-			//////////////// ??????????? ????? ? ??????? ? ?????????? ????? /////////////////
-			hero.health -= enemy->attack;
+			//if (hero.dx < 0) { hero.x = enemy->x + enemy->w; }//если столкнулись с врагом и игрок идет влево то выталкиваем игрока
+			//if (hero.dx > 0) { hero.x = enemy->x - hero.w; }
+			if (!hero.isInvulnerability)
+			{
+				hero.health -= enemy->attack;
+				hero.isInvulnerability = true;
+				std::cout << hero.health << "\n";
+			}
+			if (enemy->name == "EasyEnemy") 
+			{//и при этом имя объекта EasyEnemy,то..
+				enemy->dx *= -1;
+			}
 		}
 	}
 }
@@ -140,14 +151,15 @@ int main()
 	easyEnemyImage.createMaskFromColor(Color(88, 152, 144));
 	easyEnemyImage.createMaskFromColor(Color(255, 255, 255));
 
+	Image flyEnemyImage;
+	flyEnemyImage.loadFromFile("images/enemy2.png");
+	flyEnemyImage.createMaskFromColor(Color(255, 255, 255));
+
 	Image portalImage;
 	portalImage.loadFromFile("images/portals.png");
 	portalImage.createMaskFromColor(Color(0, 128, 0));
 	int portalH = 49;
 	int portalW = 35;
-
-	Image lineImage;
-	lineImage.loadFromFile("images/portals.png");
 
 	Object playerObject = lvl.GetObject("player");//объект игрока на нашей карте.задаем координаты игроку в начале при помощи него
 	Player player(heroImage, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);//передаем координаты прямоугольника player из карты в координаты нашего игрока
@@ -156,7 +168,11 @@ int main()
 	vector <Enemy*>::iterator it;//итератор чтобы проходить по эл-там списка
 	std::vector<Object> e = lvl.GetObjects("easyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
 	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
-		enemies.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 52, 26));//и закидываем в список всех наших врагов с карты
+		enemies.push_back(new Enemy(easyEnemyImage, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 53, 29));//и закидываем в список всех наших врагов с карты
+
+	e = lvl.GetObjects("flyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
+	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
+		enemies.push_back(new Enemy(flyEnemyImage, "flyEnemy", lvl, e[i].rect.left, e[i].rect.top, 38, 36));
 
 	vector <Portal*> portals;
 	vector <Portal*>::iterator it_p;
@@ -165,8 +181,6 @@ int main()
 
 	while (window.isOpen())
 	{
-
-		
 		float time = clock.getElapsedTime().asMicroseconds();
 		clock.restart();
 		time = time / 800;
