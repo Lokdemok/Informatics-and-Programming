@@ -13,7 +13,6 @@ public:
 	float dx; 
 	float dy; 
 	float speed; 
-	float moveTimer;
 	float currentFrame = 0;
 	float x;
 	float y;
@@ -25,21 +24,20 @@ public:
 	bool isInvulnerability;
 	float countInvulnerability = 0;
 	float durationInvulnerability = 300;
+	float speedChangedFrames = float(0.005);
 	int w;
 	int h;
 	String name;
 	Sprite sprite;
 	std::vector<Object> obj;
-	Texture texture;
 	bool life;
 	enum { left, right, jump, stay } state;//добавляем тип перечисления - состояние объекта
 	int playerScore;//эта переменная может быть только у игрока
-	int SpriteW = 32;
-	int SpriteH = 31;
-	float baseX = 320;
-	float baseY = 128;
+	int imageX = 320;
+	int imageY = 128;
+	int heart;
 	int teleportY;
-	Player(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) 
+	Player(Sprite &heroSprite, String Name, Level &lvl, float X, float Y, int W, int H) 
 	{
 		playerScore = 0; 
 		state = stay;
@@ -49,7 +47,8 @@ public:
 		h = H;
 		name = Name;
 		speed = 0; 
-		health = 100; 
+		health = 5; 
+		heart = 1;
 		dx = 0; 
 		dy = 0;
 		life = true; 
@@ -57,12 +56,11 @@ public:
 		isMove = false;
 		isTeleport = false;
 		obj = lvl.GetAllObjects(); 
-		texture.loadFromImage(image);
-		sprite.setTexture(texture);
-		sprite.setOrigin(w / 2, h / 2);
+		sprite = heroSprite;
+		sprite.setOrigin(float(w / 2), float(h / 2));
 		if (name == "Player1") 
 		{
-			sprite.setTextureRect(IntRect(baseX, baseY, SpriteW, SpriteH));
+			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
 		}
 	}
 
@@ -72,27 +70,23 @@ public:
 			if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A))
 			{
 				state = left;
-				speed = 0.2;
-				std::cout << "left\n";
+				speed = float(0.2);
 			}
 
 			if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::D))
 			{
 				state = right;
-				speed = 0.2;
-				std::cout << "right\n";
+				speed = float(0.2);
 			}
 			if (((Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::W))) && (onGround))
 			{
 				state = jump; 
-				dy = -0.7; 
+				dy = -float(0.7);
 				onGround = false;
-				std::cout << "jump\n";
 			}
 			if (Keyboard::isKeyPressed(Keyboard::E) && (onGround))
 			{
 				isTeleport = true;
-				std::cout << "open\n";
 			}
 		}
 
@@ -118,30 +112,39 @@ public:
 			{
 				case right: 
 					dx = speed; 
-					sprite.setTextureRect(IntRect(baseX + w * (int)currentFrame, baseY + h * 2, w, h)); 
+					sprite.setTextureRect(IntRect(imageX + w * (int)currentFrame, imageY + h * 2, w, h));
 					break;
 				case left: 
 					dx = -speed; 
-					sprite.setTextureRect(IntRect(baseX + w * (int)currentFrame, baseY + h, w, h));  
+					sprite.setTextureRect(IntRect(imageX + w * (int)currentFrame, imageY + h, w, h));
 					break;
 				case jump: 
 					break;
 				case stay: 
 				{
-					sprite.setTextureRect(IntRect(baseX, baseY, SpriteW, SpriteH));
+					sprite.setTextureRect(IntRect(imageX, imageY, w, h));
 					break;
 				}
 			}
-			currentFrame += time * 0.005;
+			currentFrame += time * speedChangedFrames;
 			x += dx*time;
 			CheckCollisionWithMap(dx, 0);
 			y += dy*time;
 			CheckCollisionWithMap(0, dy);
 			sprite.setPosition(x + w / 2, y + h / 2);
-			if (health <= 0) { life = false; }
+			if (health <= 0) 
+			{ 
+				if (heart > 0)
+				{
+					health = 5;
+					heart--;
+				}
+				else
+					life = false;
+			}
 			if (!isMove) speed = 0;
 			if (life) { setPlayerCoordinateForView(x, y); }
-			dy = dy + 0.0015*time;
+			dy += float(0.0015)*time;
 			teleportY = CooordinateYPortal(obj, pos, portalH);
 			if (teleportY != -1)
 			{
@@ -177,7 +180,7 @@ public:
 
 		FloatRect GetRect() 
 		{//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-			return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
+			return FloatRect(x, y, float(w), float(h));//эта ф-ция нужна для проверки столкновений 
 		}
 
 
@@ -202,7 +205,7 @@ public:
 				{
 					if (rectAir.intersects(obj[i].rect) && (!rectEarth.intersects(obj[i].rect)))
 					{
-						return obj[i].rect.top - portalH / 2;
+						return int(obj[i].rect.top - portalH / 2);
 					}
 				}
 			}
@@ -215,8 +218,8 @@ public:
 			distance = sqrt((pos.x - x)*(pos.x - x) + (pos.y - y)*(pos.y - y));//считаем дистанцию (длину от точки А до точки Б). формула длины вектора
 			float dxLine = pos.x - x;//вектор , колинеарный прямой, которая пересекает спрайт и курсор
 			float dyLine = pos.y - y;//он же, координата y
-			float rotation = (atan2(dyLine, dxLine)) * 180 / 3.14159265;
-			RectangleShape line(sf::Vector2f(distance - 0.05 * distance, 1));//получаем угол в радианах и переводим его в градусы
+			float rotation = (atan2(dyLine, dxLine)) * float(180 / 3.14159265);
+			RectangleShape line(sf::Vector2f(distance - float(0.05) * distance, float(1)));//получаем угол в радианах и переводим его в градусы
 			line.rotate(rotation);
 			line.setFillColor(Color::Green);
 			if (state == right)
@@ -226,11 +229,11 @@ public:
 			}
 			if (state == left)
 			{
-				line.setPosition(x, y + h / 3);
+				line.setPosition(x, y + float(h / 3));
 			}
 			if (state == stay || state == jump)
 			{
-				line.setPosition(x + w / 2, y + h / 3);
+				line.setPosition(x + float(w / 2), y + float(h / 3));
 			}
 			return line;
 		}

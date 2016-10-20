@@ -10,49 +10,41 @@ class Bullet
 public:
 	float goalX;
 	float goalY;
-	float dx;
-	float dy;
 	float currentFrame = 0;
 	float x;
 	float y;
 	int w;
 	int h;
 	float numFrames;
-	float distanceView;
 	float speed;
 	String name;
 	Sprite sprite;
 	std::vector<Object> obj;
-	Texture texture;
 	bool life;
-	int spriteW;
-	int spriteH = 31;
-	float imageX = 320;
-	float imageY = 128;
+	int imageX;
+	int imageY;
 	float startDX;
 	float startDY;
 	int attack;
 
-	Bullet(Image &image, String Name, Level &lvl, float X, float Y, int W, int H, float xGoal, float yGoal)  
+	Bullet(Sprite &bulletSprite, String Name, Level &lvl, float X, float Y, int W, int H, float xGoal, float yGoal)  
 	{
 		x = X;
 		y = Y;
 		goalX = xGoal;
 		goalY = yGoal;
-		speed = 0.8;
 		life = true;
 		w = W;
 		h = H;
 		name = Name;
 		obj = lvl.GetObjects("solid");
-		texture.loadFromImage(image);
-		sprite.setTexture(texture);
-		sprite.setOrigin(w / 2, h / 2);
+		sprite = bulletSprite;
+		sprite.setOrigin(float(w / 2), float(h / 2));
 		imageX = 197;
 		imageY = 5;
-		speed = 0.3;
+		speed = float(0.3);
 		sprite.setTextureRect(IntRect(imageX, imageY, w, h));
-		attack = 10;
+		attack = 1;
 		startDX = xGoal - X;
 		startDY = yGoal - Y;
 		numFrames = 7;//даем скорость.этот объект всегда двигается
@@ -86,7 +78,7 @@ public:
 				life = false;// то пуля умирает
 			}
 		}
-		currentFrame += time * 0.008;
+		currentFrame += time * float(0.008);
 		if (currentFrame >= numFrames)
 		{
 			currentFrame = 0;
@@ -97,6 +89,6 @@ public:
 
 	FloatRect GetRect()
 	{//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-		return FloatRect(x, y, w, h);//эта ф-ция нужна для проверки столкновений 
+		return FloatRect(x, y, float(w), float(h));//эта ф-ция нужна для проверки столкновений 
 	}
 };

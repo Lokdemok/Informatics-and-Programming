@@ -17,45 +17,41 @@ public:
 	int health;
 	int w;
 	int h;
-	float numFrames;
+	int numFrames;
 	float distanceView;
 	String name;
 	Sprite sprite;
 	std::vector<Object> obj;
-	Texture texture;
 	bool life;
 	bool watchPlayer;
 	bool isShoot;
-	bool isLeft;
-	int spriteW;
-	int spriteH = 31;
-	float imageX = 320;
-	float imageY = 128;
+	int imageX;
+	int imageY;
 	float shootTimer;
-	int countNextShoot;
+	float speedChangeFrames;
 	float timeRecharge = 3000;
 	int attack;
 	enum  enemyStates { left, right, stay } state;
 
-	Enemy(Image &image, String Name, Level &lvl, float X, float Y, int W, int H) {
+	Enemy(Sprite &enemySprite, String Name, Level &lvl, float X, float Y, int W, int H) {
 		x = X;
 		y = Y;
 		w = W;
 		h = H;
 		name = Name;
 		life = true;
+		speedChangeFrames = float(0.008);
 		obj = lvl.GetAllObjects();
-		texture.loadFromImage(image);
-		sprite.setTexture(texture);
-		sprite.setOrigin(w / 2, h / 2);
+		sprite = enemySprite;
+		sprite.setOrigin(float(w / 2), float(h / 2));
 		if (name == "easyEnemy")
 		{
 			imageX = 0;
 			imageY = 81;
 			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
-			health = 100;
-			attack = 10;
-			dx = -0.1;
+			health = 2;
+			attack = 1;
+			dx = -float(0.1);
 			numFrames = 9;
 		}
 		if (name == "flyEnemy")
@@ -63,13 +59,11 @@ public:
 			imageX = 3;
 			imageY = 1;
 			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
-			health = 100;
-			attack = 10;
-			dx = 0;
+			health = 5;
+			attack = 1;
 			state = left;
 			distanceView = 2000;
 			watchPlayer = false;
-			countNextShoot = 0;
 			numFrames = 16;
 		}
 	}
@@ -87,8 +81,8 @@ public:
 						dy = 0;
 					}
 					if (Dy<0) { y = obj[i].rect.top + obj[i].rect.height;   dy = 0; }
-					if (Dx>0) { x = obj[i].rect.left - w;  dx = -0.1; sprite.scale(-1, 1); }
-					if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; dx = 0.1; sprite.scale(-1, 1); }
+					if (Dx>0) { x = obj[i].rect.left - w;  dx = -float(0.1); sprite.scale(-1, 1); }
+					if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; dx = float(0.1); sprite.scale(-1, 1); }
 				}
 			}
 	}
@@ -97,7 +91,7 @@ public:
 
 	void Update(float time, Vector2f pos)
 	{
-		currentFrame += time * 0.008;
+		currentFrame += time * speedChangeFrames;
 		if (name == "easyEnemy")
 		{
 			x += dx*time;
@@ -155,10 +149,6 @@ public:
 				watchPlayer = false;
 				sprite.setColor(Color::White);
 			}
-			if (state == left)
-				isLeft = true;
-			else
-				isLeft = false;
 		}
 		sprite.setTextureRect(IntRect(imageX + w * int(currentFrame), imageY, w, h));
 		sprite.setPosition(x + w / 2, y + h / 2); //задаем позицию спрайта в место его центра
@@ -179,8 +169,8 @@ public:
 		{
 			float dxLine = pos.x - x;//вектор , колинеарный прямой, которая пересекает спрайт и курсор
 			float dyLine = pos.y - y;//он же, координата y
-			float rotation = (atan2(dyLine, dxLine)) * 180 / 3.14159265;
-			RectangleShape aim(sf::Vector2f(distance - 0.05 * distance, 1));//получаем угол в радианах и переводим его в градусы
+			float rotation = (atan2(dyLine, dxLine)) * float(180 / 3.14159265);
+			RectangleShape aim(sf::Vector2f(distance - float(0.05) * distance, 1));//получаем угол в радианах и переводим его в градусы
 			aim.rotate(rotation);
 			aim.setPosition(x, y + h / 3);
 			for (int i = 0; i < obj.size(); i++)
@@ -200,6 +190,6 @@ public:
 
 	FloatRect GetRect()
 	{
-		return FloatRect(x, y, w, h);//для проверки столкновений 
+		return FloatRect(x, y, float(w), float(h));//для проверки столкновений 
 	}
 };

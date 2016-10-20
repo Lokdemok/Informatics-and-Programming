@@ -57,7 +57,7 @@ int Object::GetPropertyInt(std::string name)//возвращаем номер свойства в нашем 
 
 float Object::GetPropertyFloat(std::string name)
 {
-	return strtod(properties[name].c_str(), NULL);
+	return float(strtod(properties[name].c_str(), NULL));
 }
 
 std::string Object::GetPropertyString(std::string name)//получить имя в виде строки.вроде понятно
@@ -141,8 +141,8 @@ bool Level::LoadFromFile(std::string filename)//двоеточия-обращение к методам кл
 		// если присутствует opacity, то задаем прозрачность слоя, иначе он полностью непрозрачен
 		if (layerElement->Attribute("opacity") != NULL)
 		{
-			float opacity = strtod(layerElement->Attribute("opacity"), NULL);
-			layer.opacity = 255 * opacity;
+			float opacity = float(strtod(layerElement->Attribute("opacity"), NULL));
+			layer.opacity = int(int(255) * opacity);
 		}
 		else
 		{
@@ -182,7 +182,7 @@ bool Level::LoadFromFile(std::string filename)//двоеточия-обращение к методам кл
 				sf::Sprite sprite;
 				sprite.setTexture(tilesetImage);
 				sprite.setTextureRect(subRects[subRectToUse]);
-				sprite.setPosition(x * tileWidth, y * tileHeight);
+				sprite.setPosition(float(x * tileWidth), float(y * tileHeight));
 				sprite.setColor(sf::Color(255, 255, 255, layer.opacity));
 
 				layer.tiles.push_back(sprite);//закидываем в слой спрайты тайлов
@@ -239,7 +239,7 @@ bool Level::LoadFromFile(std::string filename)//двоеточия-обращение к методам кл
 				sf::Sprite sprite;
 				sprite.setTexture(tilesetImage);
 				sprite.setTextureRect(sf::Rect<int>(0, 0, 0, 0));
-				sprite.setPosition(x, y);
+				sprite.setPosition(float(x), float(y));
 
 				if (objectElement->Attribute("width") != NULL)
 				{
@@ -260,10 +260,10 @@ bool Level::LoadFromFile(std::string filename)//двоеточия-обращение к методам кл
 				object.sprite = sprite;
 
 				sf::Rect <float> objectRect;
-				objectRect.top = y;
-				objectRect.left = x;
-				objectRect.height = height;
-				objectRect.width = width;
+				objectRect.top = float(y);
+				objectRect.left = float(x);
+				objectRect.height = float(height);
+				objectRect.width = float(width);
 				object.rect = objectRect;
 
 				// "переменные" объекта

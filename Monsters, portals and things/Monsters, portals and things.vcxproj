@@ -29,6 +29,7 @@
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="game.h" />
     <ClInclude Include="level.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="portal.h" />
