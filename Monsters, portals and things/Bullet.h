@@ -27,7 +27,7 @@ public:
 	float startDY;
 	int attack;
 
-	Bullet(Sprite &bulletSprite, String Name, Level &lvl, float X, float Y, int W, int H, float xGoal, float yGoal)  
+	Bullet(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H, float xGoal, float yGoal)
 	{
 		x = X;
 		y = Y;
@@ -38,10 +38,10 @@ public:
 		h = H;
 		name = Name;
 		obj = lvl.GetObjects("solid");
-		sprite = bulletSprite;
+		sprite.setTexture(texture);
 		sprite.setOrigin(float(w / 2), float(h / 2));
-		imageX = 197;
-		imageY = 5;
+		imageX = 0;
+		imageY = 0;
 		speed = float(0.3);
 		sprite.setTextureRect(IntRect(imageX, imageY, w, h));
 		attack = 1;
@@ -55,7 +55,7 @@ public:
 	{
 		float positionGoal = sqrt((goalX - x)*(goalX - x) + (goalY - y)*(goalY - y));//считаем дистанцию (длину от точки А до точки Б). формула длины вектора
 
-		if (positionGoal > 2) //этим условием убираем дергание во время конечной позиции спрайта
+		if (positionGoal > 10) //этим условием убираем дергание во время конечной позиции спрайта
 			{
 			x += speed*time*(goalX - x)/ positionGoal;// / distance;//идем по иксу с помощью вектора нормали
 			y += speed*time*(goalY - y)/ positionGoal; /// distance;//идем по игреку так же

@@ -33,7 +33,7 @@ public:
 	int attack;
 	enum  enemyStates { left, right, stay } state;
 
-	Enemy(Sprite &enemySprite, String Name, Level &lvl, float X, float Y, int W, int H) {
+	Enemy(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H) {
 		x = X;
 		y = Y;
 		w = W;
@@ -42,12 +42,12 @@ public:
 		life = true;
 		speedChangeFrames = float(0.008);
 		obj = lvl.GetAllObjects();
-		sprite = enemySprite;
+		sprite.setTexture(texture);
 		sprite.setOrigin(float(w / 2), float(h / 2));
 		if (name == "easyEnemy")
 		{
 			imageX = 0;
-			imageY = 81;
+			imageY = 17;
 			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
 			health = 2;
 			attack = 1;
@@ -56,8 +56,8 @@ public:
 		}
 		if (name == "flyEnemy")
 		{
-			imageX = 3;
-			imageY = 1;
+			imageX = 2;
+			imageY = 108;
 			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
 			health = 5;
 			attack = 1;

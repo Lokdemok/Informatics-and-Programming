@@ -23,16 +23,17 @@ struct Statistic
 struct Graphics
 {
 	Statistic statistic;
-	Sprite easyEnemy;
-	Sprite flyEnemy;
+	Sprite spider;
+	Sprite eye;
 	Sprite player;
 	Sprite bullet;
 	Sprite portal;
-	int portalH;
-	int portalW;
+	Texture allTexture;
 };
 
 struct Game
 {
-	Graphics gr;
+	int portalH = 50;
+	int portalW = 36;
+	Graphics graphic;
 };

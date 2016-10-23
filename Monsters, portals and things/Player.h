@@ -31,13 +31,14 @@ public:
 	Sprite sprite;
 	std::vector<Object> obj;
 	bool life;
+	bool isExit;
 	enum { left, right, jump, stay } state;//добавляем тип перечисления - состояние объекта
 	int playerScore;//эта переменная может быть только у игрока
-	int imageX = 320;
-	int imageY = 128;
+	int imageX = 0;
+	int imageY = 151;
 	int heart;
 	int teleportY;
-	Player(Sprite &heroSprite, String Name, Level &lvl, float X, float Y, int W, int H) 
+	Player(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H)
 	{
 		playerScore = 0; 
 		state = stay;
@@ -56,11 +57,11 @@ public:
 		isMove = false;
 		isTeleport = false;
 		obj = lvl.GetAllObjects(); 
-		sprite = heroSprite;
+		sprite.setTexture(texture);
 		sprite.setOrigin(float(w / 2), float(h / 2));
 		if (name == "Player1") 
 		{
-			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
+			sprite.setTextureRect(IntRect(imageX + w, imageY, w, h));
 		}
 	}
 
@@ -102,6 +103,8 @@ public:
 						if (Dx>0) { x = obj[i].rect.left - w - int(w*0.03); }
 						if (Dx<0) { x = obj[i].rect.left + obj[i].rect.width; }
 					}
+					if (obj[i].name == "exit")
+						isExit = true;
 				}
 		}
 

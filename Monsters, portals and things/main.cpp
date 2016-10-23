@@ -11,55 +11,11 @@
 #include "Enemy.h"
 #include "Bullet.h"
 #include "game.h"
-//#include "map.h"
+
 
 
 using namespace sf;
 using namespace std;
-
-
-struct GraphicResource {
-	Image* image;
-	Texture* texture;
-	Sprite* sprite;
-};
-
-struct Heart
-{
-	Sprite sprite;
-	int imageX = 3;
-	int imageY = 10;
-	int w = 54;
-	int h = 46;
-};
-
-Sprite GetHeartSprite()
-{
-	Heart heart;
-	return heart.sprite;
-}
-
-void CleanMemory(GraphicResource & gr)
-{
-	delete gr.image;
-	delete gr.texture;
-	delete gr.sprite;
-}
-
-GraphicResource MakeSprite(String const& fileName)
-{
-	GraphicResource gr;
-	gr.image = new Image();
-	gr.texture = new Texture();
-	gr.sprite = new Sprite();
-	if (!gr.image->loadFromFile(fileName))
-		cout << "Error loading image from file " << endl;
-	if (!gr.texture->loadFromImage(*gr.image))
-		cout << "Error loading texture from image " << endl;
-	gr.sprite->setTexture(*gr.texture);
-	gr.image-> ~Image();
-	return gr;
-}
 
 
 void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
@@ -68,7 +24,6 @@ void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
 	for (it = enemy.begin(); it != enemy.end();)
 	{
 		Enemy *b = *it;
-	//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
 		b->Update(time, Vector2f(hero.x, hero.y));
 		if (!b->life)
 		{
@@ -86,7 +41,6 @@ void UpdatePortals(vector <Portal*> & portal, float time)
 	for (it = portal.begin(); it != portal.end();)
 	{
 		Portal *b = *it;
-		//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
 		b->Update(time);
 		if (!b->life)
 		{
@@ -104,7 +58,6 @@ void UpdateBullets(vector <Bullet*> & bullet, float time)
 	for (it = bullet.begin(); it != bullet.end();)
 	{
 		Bullet *b = *it;
-		//	b->Update(game.time, hero.GetPos().x, hero.GetPos().y);
 		b->Update(time);
 		if (!b->life)
 		{
@@ -142,21 +95,21 @@ void DrawStatistic(RenderWindow & window, Game *g, Player &player, View camera)
 	int count = player.health;
 	while (count != 0)
 	{
-		g->gr.statistic.heart.setPosition(camera.getCenter().x - 320 + count * 20, camera.getCenter().y - 230);
-		window.draw(g->gr.statistic.heart);
+		g->graphic.statistic.heart.setPosition(camera.getCenter().x - 320 + count * 20, camera.getCenter().y - 230);
+		window.draw(g->graphic.statistic.heart);
 		count--;
 	}
 	count = player.heart;
 	while (count != 0)
 	{
-		Sprite life = g->gr.statistic.life;
+		Sprite life = g->graphic.statistic.life;
 		life.setPosition(camera.getCenter().x - 80 + count * 18, camera.getCenter().y - 230);
 		window.draw(life);
 		count--;
 	}
 }
 
-void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl, Vector2f pos)
+void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl, Vector2f pos, Texture &texture)
 {
 	vector<Portal*>::iterator it_p;
 	for (it_p = portals.begin(); it_p != portals.end(); it_p++)
@@ -164,7 +117,7 @@ void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl,
 		{
 			(*it_p)->life = false;
 		}
-	portals.push_back(new Portal(game.gr.portal, name, lvl, pos.x, pos.y, game.gr.portalW, game.gr.portalH));
+	portals.push_back(new Portal(texture, name, lvl, pos.x, pos.y, game.portalW, game.portalH));
 
 }
 
@@ -178,8 +131,6 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 		Enemy *enemy = *it_e;
 		if (hero.GetRect().intersects(enemy->GetRect()))
 		{
-			//if (hero.dx < 0) { hero.x = enemy->x + enemy->w; }//если столкнулись с врагом и игрок идет влево то выталкиваем игрока
-			//if (hero.dx > 0) { hero.x = enemy->x - hero.w; }
 			if (!hero.isInvulnerability)
 			{
 				hero.health -= enemy->attack;
@@ -187,7 +138,7 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 				damage.play();
 			}
 			if (enemy->name == "EasyEnemy") 
-			{//и при этом имя объекта EasyEnemy,то..
+			{
 				enemy->dx *= -1;
 			}
 		}
@@ -251,84 +202,44 @@ Text MakeMessage(string string, int size)
 	return text;
 }
 
+void ExitFound(RenderWindow & window, View &view, Text &text)
+{
+	text.setColor(Color::White);
+	text.setString("Вы смогли выбраться");
+	text.setPosition(view.getCenter().x - 150, view.getCenter().y - 80);
+	window.draw(text);
+}
+
 void GameOver(RenderWindow & window, View &view, Text &text)
 {
-	//Text text = MakeMessage("GAME OVER", 20);
 	text.setColor(Color::White);
-	text.setStyle(Text::Bold);
-	text.setString("GAME OVER");//?????? ?????? ??????
-	text.setPosition(view.getCenter().x - 65, view.getCenter().y - 20);//задаем позицию текста, отступая от центра камеры
-	window.draw(text);//рисую этот текст
+	text.setString("GAME OVER");
+	text.setPosition(view.getCenter().x - 65, view.getCenter().y - 20);
+	window.draw(text);
 }
+
 
 void RunningGame(RenderWindow & window)
 {
-	Level lvl;//создали экземпляр класса уровень
-	lvl.LoadFromFile("lev1.tmx");//загрузили в него карту, внутри класса с помощью методов он ее обработает.
+	Level lvl;
+	lvl.LoadFromFile("level1.tmx");
 
+	Image image;
+	Texture texture;
+	if (!image.loadFromFile("images/lvl.png"))
+		cout << "Error loading image from file " << endl;
+	image.createMaskFromColor(Color(0, 128, 0));
+	if (!texture.loadFromImage(image))
+		cout << "Error loading texture from image " << endl;
 
-
-	Image heroImage;
-	heroImage.loadFromFile("images/hero1.png");
-	heroImage.createMaskFromColor(Color(255, 255, 255));
-	Texture heroTexture;
-	heroTexture.loadFromImage(heroImage);
-	Sprite heroSprite;
-	heroSprite.setTexture(heroTexture);
-
-	Image easyEnemyImage;
-	easyEnemyImage.loadFromFile("images/enemy1.png");
-	easyEnemyImage.createMaskFromColor(Color(88, 152, 144));
-	easyEnemyImage.createMaskFromColor(Color(255, 255, 255));
-	Texture easyEnemyTex;
-	easyEnemyTex.loadFromImage(easyEnemyImage);
-	Sprite easyEnemySprite;
-	easyEnemySprite.setTexture(easyEnemyTex);
-
-	Image flyEnemyImage;
-	flyEnemyImage.loadFromFile("images/enemy2.png");
-	flyEnemyImage.createMaskFromColor(Color(255, 255, 255));
-	Texture flyEnemyTex;
-	flyEnemyTex.loadFromImage(flyEnemyImage);
-	Sprite flyEnemySprite;
-	flyEnemySprite.setTexture(flyEnemyTex);
-
-	Image bulletImage;
-	bulletImage.loadFromFile("images/bullet.png");
-	bulletImage.createMaskFromColor(Color(163, 73, 164));
-	Texture bulletTexture;
-	bulletTexture.loadFromImage(bulletImage);
-	Sprite bulletSprite;
-	bulletSprite.setTexture(bulletTexture);
-
-	Image portalImage;
-	portalImage.loadFromFile("images/portals.png");
-	portalImage.createMaskFromColor(Color(0, 128, 0));
-	Texture portalTexture;
-	portalTexture.loadFromImage(portalImage);
-	Sprite portalSprite;
-	portalSprite.setTexture(portalTexture);
-
-
-	Image heartImage;
-	heartImage.loadFromFile("images/heart.png");
-	heartImage.createMaskFromColor(Color(163, 73, 164));
-	Texture heartTexture;
-	heartTexture.loadFromImage(heartImage);
 	Sprite heartSprite;
-	heartSprite.setTexture(heartTexture);
-	heartSprite.setTextureRect(IntRect(3, 10, 54, 46));  //приведение типов, размеры картинки исходные
-	heartSprite.setScale(0.3f, 0.3f);//чуть уменьшили картинку, => размер стал меньше
+	heartSprite.setTexture(texture);
+	heartSprite.setTextureRect(IntRect(395, 151, 54, 46));
+	heartSprite.setScale(0.3f, 0.3f);
 
-
-	Image lifeImage;
-	lifeImage.loadFromFile("images/life.png");
-	lifeImage.createMaskFromColor(Color(163, 73, 164));
-	Texture lifeTexture;
-	lifeTexture.loadFromImage(lifeImage);
 	Sprite lifeSprite;
-	lifeSprite.setTexture(lifeTexture);
-	lifeSprite.setTextureRect(IntRect(3, 2, 29, 29));  //приведение типов, размеры картинки исходные
+	lifeSprite.setTexture(texture);
+	lifeSprite.setTextureRect(IntRect(457, 149, 29, 29));
 	lifeSprite.setScale(0.8f, 0.8f);
 
 	Font font;
@@ -336,30 +247,19 @@ void RunningGame(RenderWindow & window)
 	Text text("", font, 25);
 
 	Game game;
-	game.gr.statistic.heart = heartSprite;
-	game.gr.statistic.life = lifeSprite;
-	game.gr.player = heroSprite;
-	game.gr.easyEnemy = easyEnemySprite;
-	game.gr.flyEnemy = flyEnemySprite;
-	game.gr.bullet = bulletSprite;
-	game.gr.portal = portalSprite;
-	game.gr.portalH = 50;
-	game.gr.portalW = 36;
+	game.graphic.statistic.heart = heartSprite;
+	game.graphic.statistic.life = lifeSprite;
 
-
-
-	Object playerObject = lvl.GetObject("player");//объект игрока на нашей карте.задаем координаты игроку в начале при помощи него
-	Player player(game.gr.player, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);//передаем координаты прямоугольника player из карты в координаты нашего игрока
 
 	vector <Enemy*>  enemies;
-	vector <Enemy*>::iterator it_e;//итератор чтобы проходить по эл-там списка
-	std::vector<Object> e = lvl.GetObjects("easyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
-	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
-		enemies.push_back(new Enemy(game.gr.easyEnemy, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 53, 29));//и закидываем в список всех наших врагов с карты
+	vector <Enemy*>::iterator it_e;
+	std::vector<Object> e = lvl.GetObjects("easyEnemy");
+	for (int i = 0; i < e.size(); i++)
+		enemies.push_back(new Enemy(texture, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 53, 28));
 
-	e = lvl.GetObjects("flyEnemy");//все объекты врага на tmx карте хранятся в этом векторе
-	for (int i = 0; i < e.size(); i++)//проходимся по элементам этого вектора(а именно по врагам)
-		enemies.push_back(new Enemy(game.gr.flyEnemy, "flyEnemy", lvl, e[i].rect.left, e[i].rect.top, 38, 36));
+	e = lvl.GetObjects("flyEnemy");
+	for (int i = 0; i < e.size(); i++)
+		enemies.push_back(new Enemy(texture, "flyEnemy", lvl, e[i].rect.left, e[i].rect.top, 38, 36));
 
 	vector <Portal*> portals;
 	vector <Portal*>::iterator it_p;
@@ -387,10 +287,14 @@ void RunningGame(RenderWindow & window)
 	deathBuffer.loadFromFile("sound/damage.wav");
 	Sound gameOver(deathBuffer);
 
-	Music music;//создаем объект музыки
-	music.openFromFile("sound/musicGame.ogg");//загружаем файл
+	Music music;
+	music.openFromFile("sound/musicGame.ogg");
 	music.play();
 
+	Object playerObject = lvl.GetObject("player");
+	Player player(texture, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);
+
+	cout << "base while\n";
 	while (window.isOpen())
 	{
 		float time = float(clock.getElapsedTime().asMicroseconds());
@@ -408,12 +312,12 @@ void RunningGame(RenderWindow & window)
 				pos.y = float(player.teleportY);
 				if ((event.key.code == Mouse::Left) && (player.openPortal))
 				{
-					CreatePortal(portals, game, "blue", lvl, pos);
+					CreatePortal(portals, game, "blue", lvl, pos, texture);
 					portal.play();
 				}
 				else if (event.key.code == Mouse::Right && (player.openPortal))
 				{
-					CreatePortal(portals, game, "yellow", lvl, pos);
+					CreatePortal(portals, game, "yellow", lvl, pos, texture);
 					portal.play();
 				}
 			}
@@ -437,14 +341,14 @@ void RunningGame(RenderWindow & window)
 					y = (*it_e)->y;
 				else
 					y = (*it_e)->y + (*it_e)->h;
-				bullets.push_back(new Bullet(game.gr.bullet, "bullet", lvl, x, y, 14, 14, player.x, player.y));
+				bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.x, player.y));
 				shoot.play();
 			}
 		}
 		EntitiesIntersection(player, enemies, portals, bullets, damage);
-		if (player.life)
+		if (player.life && (!player.isExit))
 		{
-			player.Update(time, pos, game.gr.portalH);// Player update function	
+			player.Update(time, pos, game.portalH);
 			UpdateEnemies(enemies, time, player);
 			UpdatePortals(portals, time);
 			UpdateBullets(bullets, time);
@@ -463,6 +367,10 @@ void RunningGame(RenderWindow & window)
 		{
 			GameOver(window, camera, text);
 		}
+		if (player.isExit)
+		{
+			ExitFound(window, camera, text);
+		}
 		window.display();
 	}
 }
@@ -470,6 +378,7 @@ void RunningGame(RenderWindow & window)
 
 int main()
 {
+	cout << "start\n";
 	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
 	camera.reset(FloatRect(0, 0, 640, 480));
 	RunningGame(window);

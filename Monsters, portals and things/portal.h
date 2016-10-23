@@ -26,7 +26,7 @@ public:
 	std::vector<Object> obj;
 	bool life;
 
-	Portal(Sprite &portalSprite, String Name, Level &lvl, float X, float Y, int W, int H)
+	Portal(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H)
 	{
 		obj = lvl.GetObjects("solid");
 		x = X;
@@ -36,12 +36,12 @@ public:
 		name = Name;
 		speedChandegFrames = float(0.005);
 		size = 281;
-		sprite = portalSprite;
+		sprite.setTexture(texture);
 		if (name == "yellow")
 		{
 			sprite.setColor(Color::Yellow);
 		}
-		sprite.setTextureRect(IntRect(0, 0, w, h));
+		sprite.setTextureRect(IntRect(100, 150, w, h));
 		life = true;
 		isOpen = false;
 	}
@@ -55,11 +55,11 @@ public:
 		}
 		if (isOpen)
 		{
-			sprite.setTextureRect(IntRect(w * (int)currentFrame, 0, w, h));
+			sprite.setTextureRect(IntRect(100 + w * (int)currentFrame, 150, w, h));
 		}
 		else
 		{
-			sprite.setTextureRect(IntRect(size - w * (int)currentFrame, 0, w, h));
+			sprite.setTextureRect(IntRect(344 - w * (int)currentFrame, 150, w, h));
 		}
 		sprite.setPosition(x - w / 2, y - h / 2);
 	}
