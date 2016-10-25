@@ -23,11 +23,6 @@ struct Statistic
 struct Graphics
 {
 	Statistic statistic;
-	Sprite spider;
-	Sprite eye;
-	Sprite player;
-	Sprite bullet;
-	Sprite portal;
 	Texture allTexture;
 };
 

@@ -11,6 +11,7 @@
 #include "Enemy.h"
 #include "Bullet.h"
 #include "game.h"
+#include "Camera.h"
 
 
 
@@ -54,6 +55,7 @@ void UpdatePortals(vector <Portal*> & portal, float time)
 
 void UpdateBullets(vector <Bullet*> & bullet, float time)
 {
+	// TODO: use Remove_if + erase
 	vector<Bullet*>::iterator it;
 	for (it = bullet.begin(); it != bullet.end();)
 	{
@@ -85,8 +87,8 @@ void DrawPortals(RenderWindow & window, vector<Portal*> & portal)
 
 void DrawBullets(RenderWindow & window, vector<Bullet*> & bullet)
 {
-	vector<Bullet*>::iterator it_b;
-	for (it_b = bullet.begin(); it_b != bullet.end(); it_b++)
+	// TODO: use range-based for
+	for (vector<Bullet*>::iterator it_b = bullet.begin(); it_b != bullet.end(); it_b++)
 		window.draw((*it_b)->sprite);
 }
 
@@ -111,6 +113,7 @@ void DrawStatistic(RenderWindow & window, Game *g, Player &player, View camera)
 
 void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl, Vector2f pos, Texture &texture)
 {
+	// TODO: use range-based for
 	vector<Portal*>::iterator it_p;
 	for (it_p = portals.begin(); it_p != portals.end(); it_p++)
 		if ((*it_p)->name == name)
@@ -294,7 +297,6 @@ void RunningGame(RenderWindow & window)
 	Object playerObject = lvl.GetObject("player");
 	Player player(texture, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);
 
-	cout << "base while\n";
 	while (window.isOpen())
 	{
 		float time = float(clock.getElapsedTime().asMicroseconds());
@@ -346,12 +348,13 @@ void RunningGame(RenderWindow & window)
 			}
 		}
 		EntitiesIntersection(player, enemies, portals, bullets, damage);
+		if (player.life) { setPlayerCoordinateForView(player.x, player.y); }
 		if (player.life && (!player.isExit))
 		{
-			player.Update(time, pos, game.portalH);
 			UpdateEnemies(enemies, time, player);
 			UpdatePortals(portals, time);
 			UpdateBullets(bullets, time);
+			player.Update(time, pos, game.portalH);
 		}
 	
 		window.setView(camera);
@@ -378,7 +381,6 @@ void RunningGame(RenderWindow & window)
 
 int main()
 {
-	cout << "start\n";
 	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
 	camera.reset(FloatRect(0, 0, 640, 480));
 	RunningGame(window);

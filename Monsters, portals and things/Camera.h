@@ -1,3 +1,6 @@
+#ifndef camera_h
+#define camera_h
+
 using namespace sf;
 
 View camera;
@@ -12,3 +15,4 @@ View setPlayerCoordinateForView(float x, float y)
 	camera.setCenter(tempX, tempY); 
 	return camera;
 }
+#endif
