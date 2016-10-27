@@ -15,6 +15,15 @@ std::string Object::GetPropertyString(std::string name)//получить имя в виде стр
 	return properties[name];
 }
 
+bool Level::IsExist(std::string name)
+{
+	bool exist = false;
+	for (int i = 0; i < objects.size(); i++)
+		if (objects[i].name == name)
+			exist = true;
+	return exist;;
+}
+
 bool Level::LoadFromFile(std::string filename)//двоеточия-обращение к методам класса вне класса 
 {
 	TiXmlDocument levelFile(filename.c_str());//загружаем файл в TiXmlDocument

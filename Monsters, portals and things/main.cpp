@@ -19,12 +19,12 @@ using namespace sf;
 using namespace std;
 
 
-string GetLevelNumb(int levelNumb)
+string GetLevelNumb(Game &game)
 {
-	switch (levelNumb)
+	switch (game.level)
 	{
 	case 1: return "lev1.tmx"; break;
-	default: return "level1.tmx"; break;
+	default: game.isTrapLevel = true; return "level1.tmx"; break;
 	}
 }
 
@@ -148,10 +148,10 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 				hero.health -= enemy->attack;
 				hero.isInvulnerability = true;
 				damage.play();
-			}
-			if (enemy->name == "EasyEnemy") 
-			{
-				enemy->dx *= -1;
+				if (enemy->name == "trap")
+				{
+					enemy->isAttack = true;
+				}
 			}
 		}
 		for (it_b = bullets.begin(); it_b != bullets.end(); it_b++)
@@ -232,10 +232,10 @@ void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 bool StartGame(RenderWindow & window, Game & game)
 {
 	Level lvl;
-	lvl.LoadFromFile(GetLevelNumb(game.level));
+	lvl.LoadFromFile(GetLevelNumb(game));
 	Image image;
 	Texture texture;
-	if (!image.loadFromFile("images/lvl.png"))
+	if (!image.loadFromFile("images/lvl1.png"))
 		cout << "Error loading image from file " << endl;
 	image.createMaskFromColor(Color(0, 128, 0));
 	if (!texture.loadFromImage(image))
@@ -270,11 +270,19 @@ bool StartGame(RenderWindow & window, Game & game)
 	e = lvl.GetObjects("flyEnemy");
 	for (int i = 0; i < e.size(); i++)
 		enemies.push_back(new Enemy(texture, "flyEnemy", lvl, e[i].rect.left, e[i].rect.top, 38, 36));
+	
+	
+	if (lvl.IsExist("trap"))
+	{
+		e = lvl.GetObjects("trap");
+		for (int i = 0; i < e.size(); i++)
+			enemies.push_back(new Enemy(texture, "trap", lvl, e[i].rect.left, e[i].rect.top, 32, 18));
+		game.isTrapLevel = true;
+	}
+
 
 	vector <Portal*> portals;
-	vector <Portal*>::iterator it_p;
 	vector <Bullet*> bullets;
-	vector <Bullet*>::iterator it_b;
 	Clock clock;
 
 	SoundBuffer shootBuffer;

@@ -37,6 +37,7 @@ public:
 	std::vector<Object> GetAllObjects();//выдаем все объекты в наш уровень
 	void Draw(sf::RenderWindow &window);//рисуем в окно
 	sf::Vector2i GetTileSize();//получаем размер тайла
+	bool IsExist(std::string name);
 
 private:
 	int width, height, tileWidth, tileHeight;//в tmx файле width height в начале,затем размер тайла

@@ -26,6 +26,7 @@ public:
 	std::vector<Object> obj;
 	bool life;
 	bool watchPlayer;
+	bool isAttack;
 	bool isShoot;
 	int imageX;
 	int imageY;
@@ -67,6 +68,15 @@ public:
 			distanceView = 2000;
 			watchPlayer = false;
 			numFrames = 16;
+		}
+		if (name == "trap")
+		{
+			imageX = 107;
+			imageY = 211;
+			sprite.setTextureRect(IntRect(imageX, imageY, w, h));
+			health = 2;
+			attack = 1;
+			numFrames = 6;
 		}
 	}
 
