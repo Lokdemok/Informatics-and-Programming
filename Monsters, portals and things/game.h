@@ -33,5 +33,6 @@ struct Game
 	bool restart;
 	int portalH = 50;
 	int portalW = 36;
+	int level = 1;
 	Graphics graphic;
 };

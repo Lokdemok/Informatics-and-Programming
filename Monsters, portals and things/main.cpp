@@ -19,6 +19,15 @@ using namespace sf;
 using namespace std;
 
 
+string GetLevelNumb(int levelNumb)
+{
+	switch (levelNumb)
+	{
+	case 1: return "lev1.tmx"; break;
+	default: return "level1.tmx"; break;
+	}
+}
+
 void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
 {
 	vector<Enemy*>::iterator it;
@@ -208,28 +217,22 @@ void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 150, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		game.isPause = true;
 	}
-	if (player.isExit)
-	{
-		DrawMessage(window, game.graphic.text, "Вы смогли выбраться", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
-		game.isPause = true;
-	}
 	if (game.isPause)
 	{
-		if (player.life && !player.isExit)
+		if (player.life)
 		{
 			DrawMessage(window, game.graphic.text, "Пауза", camera.getCenter().x - 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
-			DrawMessage(window, game.graphic.text, "Нажмите Enter, чтобы снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 25, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+			DrawMessage(window, game.graphic.text, "Enter - снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 145, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		}
-		DrawMessage(window, game.graphic.text, "Нажмите Tab, чтобы перезапустить игру", camera.getCenter().x - WINDOW_SIZE.x / 2 + 5, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
-		DrawMessage(window, game.graphic.text, "Нажмите Esc, чтобы выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 200);
+		DrawMessage(window, game.graphic.text, "Tab - перезапустить уровень", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
+		DrawMessage(window, game.graphic.text, "Esc - выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 220, camera.getCenter().y - WINDOW_SIZE.y / 2 + 200);
 	}
 }
 
 bool StartGame(RenderWindow & window, Game & game)
 {
 	Level lvl;
-	lvl.LoadFromFile("level1.tmx");
-
+	lvl.LoadFromFile(GetLevelNumb(game.level));
 	Image image;
 	Texture texture;
 	if (!image.loadFromFile("images/lvl.png"))
@@ -347,6 +350,11 @@ bool StartGame(RenderWindow & window, Game & game)
 			{ 
 				game.restart = true; 
 			}
+		}
+		if (player.isExit)
+		{
+			game.level++;
+			game.restart = true;
 		}
 		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
 		{

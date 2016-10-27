@@ -39,6 +39,8 @@ void Player::CheckCollisionWithMap(float Dx, float Dy)//ф ция проверки столкнове
 			}
 			if (obj[i].name == "exit")
 				isExit = true;
+			else
+				isExit = false;
 		}
 }
 
