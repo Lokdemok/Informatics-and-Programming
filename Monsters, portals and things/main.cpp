@@ -24,81 +24,59 @@ string GetLevelNumb(Game &game)
 	switch (game.level)
 	{
 	case 1: return "lev1.tmx"; break;
-	default: game.isTrapLevel = true; return "level1.tmx"; break;
+	default: return "level1.tmx"; break;
 	}
 }
 
 void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
 {
-	vector<Enemy*>::iterator it;
-	for (it = enemy.begin(); it != enemy.end();)
+	for (auto *e : enemy)
 	{
-		Enemy *b = *it;
-		b->Update(time, Vector2f(hero.x, hero.y));
-		if (!b->life)
-		{
-			it = enemy.erase(it);
-			delete b;
-		}
-		else
-			it++;
+		(*e).Update(time, hero.GetPos());
 	}
+	enemy.erase(remove_if(enemy.begin(), enemy.end(), [](Enemy* &enemy) { return !enemy->life; }), enemy.end());
 }
 
-void UpdatePortals(vector <Portal*> & portal, float time)
+void UpdatePortals(vector <Portal*> &portal, float time)
 {
-	vector<Portal*>::iterator it;
-	for (it = portal.begin(); it != portal.end();)
+	for (auto *p : portal)
 	{
-		Portal *b = *it;
-		b->Update(time);
-		if (!b->life)
-		{
-			it = portal.erase(it);
-			delete b;
-		}
-		else
-			it++;
+		(*p).Update(time);
 	}
+	portal.erase(remove_if(portal.begin(), portal.end(), [](Portal* &portal) { return !portal->life; }), portal.end());
 }
 
 void UpdateBullets(vector <Bullet*> & bullet, float time)
 {
-	// TODO: use Remove_if + erase
-	vector<Bullet*>::iterator it;
-	for (it = bullet.begin(); it != bullet.end();)
+	for (auto *b : bullet)
 	{
-		Bullet *b = *it;
-		b->Update(time);
-		if (!b->life)
-		{
-			it = bullet.erase(it);
-			delete b;
-		}
-		else
-			it++;
+		(*b).Update(time);
 	}
+	bullet.erase(remove_if(bullet.begin(), bullet.end(), [](Bullet* &bullet) { return !bullet->life; }), bullet.end());
 }
 
 void DrawEnemies(RenderWindow & window, vector<Enemy*> & enemy)
 {
-	vector<Enemy*>::iterator it_e;
-	for (it_e = enemy.begin(); it_e != enemy.end(); it_e++)
-		window.draw((*it_e)->sprite);
+	for (auto *e : enemy)
+	{
+		window.draw((*e).sprite);
+	}
 }
 
 void DrawPortals(RenderWindow & window, vector<Portal*> & portal)
 {
-	vector<Portal*>::iterator it_p;
-	for (it_p = portal.begin(); it_p != portal.end(); it_p++)
-		window.draw((*it_p)->sprite);
+	for (auto *p : portal)
+	{
+		window.draw((*p).sprite);
+	}
 }
 
 void DrawBullets(RenderWindow & window, vector<Bullet*> & bullet)
 {
-	// TODO: use range-based for
-	for (vector<Bullet*>::iterator it_b = bullet.begin(); it_b != bullet.end(); it_b++)
-		window.draw((*it_b)->sprite);
+	for (auto *b : bullet)
+	{
+		window.draw((*b).sprite);
+	}
 }
 
 void DrawStatistic(RenderWindow & window, Game *g, Player &player, View camera)
@@ -123,24 +101,34 @@ void DrawStatistic(RenderWindow & window, Game *g, Player &player, View camera)
 void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl, Vector2f pos, Texture &texture)
 {
 	// TODO: use range-based for
-	vector<Portal*>::iterator it_p;
-	for (it_p = portals.begin(); it_p != portals.end(); it_p++)
-		if ((*it_p)->name == name)
+	for (auto *p : portals)
+		if ((*p).name == name)
 		{
-			(*it_p)->life = false;
+			(*p).life = false;
 		}
 	portals.push_back(new Portal(texture, name, lvl, pos.x, pos.y, game.portalW, game.portalH));
 
 }
 
+void CreateBullet(vector<Bullet*> & bullets, FloatRect rectEnemy, Level lvl, Player &player, Texture &texture)
+{
+	float x, y;
+	if (rectEnemy.left > player.GetPos().x)
+		x = rectEnemy.left;
+	else
+		x = rectEnemy.left + rectEnemy.width;
+	if ((rectEnemy.top > player.GetPos().y))
+		y = rectEnemy.top;
+	else
+		y = rectEnemy.top + rectEnemy.height;
+	bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.GetPos().x, player.GetPos().y));
+}
+
 void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &portals, vector<Bullet*> &bullets, Sound &damage)
 {
-	vector<Enemy*>::iterator it_e;
-	vector<Portal*>::iterator it_p;
-	vector<Bullet*>::iterator it_b;
-	for (it_e = enemy.begin(); it_e != enemy.end(); it_e++)
+	for (auto *e : enemy)
 	{
-		Enemy *enemy = *it_e;
+		Enemy *enemy = e;
 		if (hero.GetRect().intersects(enemy->GetRect()))
 		{
 			if (!hero.isInvulnerability)
@@ -154,9 +142,9 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 				}
 			}
 		}
-		for (it_b = bullets.begin(); it_b != bullets.end(); it_b++)
+		for (auto *b : bullets)
 		{
-			Bullet *bullet = *it_b;
+			Bullet *bullet = b;
 			if (hero.GetRect().intersects(bullet->GetRect()) && (!hero.isInvulnerability))
 			{
 				hero.health -= bullet->attack;
@@ -179,22 +167,21 @@ void TeleportPlayer(Player &player, vector<Portal*> &portals)
 	if (portals.size() >= 2)
 	{
 		String namePortal;
-		vector<Portal*>::iterator it_p;
-		for (it_p = portals.begin(); it_p != portals.end(); it_p++)
+		for (auto *p : portals)
 		{
-			if (player.GetRect().intersects((*it_p)->GetRect()))
+			if (player.GetRect().intersects((*p).GetRect()))
 			{
-				namePortal = (*it_p)->name;
+				namePortal = (*p).name;
 			}
 		}
 		if (namePortal.getSize() != 0)
 		{
-			for (it_p = portals.begin(); it_p != portals.end(); it_p++)
+			for (auto *p : portals)
 			{
-				if (!((*it_p)->name == namePortal))
+				if (!((*p).name == namePortal))
 				{
-					player.x = (*it_p)->x - ((*it_p)->w / 2);
-					player.y = (*it_p)->y - ((*it_p)->h / 2);
+					player.x = (*p).x - ((*p).w / 2);
+					player.y = (*p).y - ((*p).h / 2);
 				}
 			}
 		}
@@ -262,22 +249,20 @@ bool StartGame(RenderWindow & window, Game & game)
 	game.restart = false;
 
 	vector <Enemy*>  enemies;
-	vector <Enemy*>::iterator it_e;
 	std::vector<Object> e = lvl.GetObjects("easyEnemy");
-	for (int i = 0; i < e.size(); i++)
-		enemies.push_back(new Enemy(texture, "easyEnemy", lvl, e[i].rect.left, e[i].rect.top, 53, 28));
+	for (Object i : e)
+		enemies.push_back(new Enemy(texture, "easyEnemy", lvl, i.rect.left, i.rect.top, 53, 28));
 
 	e = lvl.GetObjects("flyEnemy");
-	for (int i = 0; i < e.size(); i++)
-		enemies.push_back(new Enemy(texture, "flyEnemy", lvl, e[i].rect.left, e[i].rect.top, 38, 36));
+	for (Object i : e)
+		enemies.push_back(new Enemy(texture, "flyEnemy", lvl, i.rect.left, i.rect.top, 38, 36));
 	
 	
 	if (lvl.IsExist("trap"))
 	{
 		e = lvl.GetObjects("trap");
-		for (int i = 0; i < e.size(); i++)
-			enemies.push_back(new Enemy(texture, "trap", lvl, e[i].rect.left, e[i].rect.top, 32, 18));
-		game.isTrapLevel = true;
+		for (Object i : e)
+			enemies.push_back(new Enemy(texture, "trap", lvl, i.rect.left, i.rect.top, 32, 18));
 	}
 
 
@@ -311,6 +296,8 @@ bool StartGame(RenderWindow & window, Game & game)
 
 	Object playerObject = lvl.GetObject("player");
 	Player player(texture, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);
+	player.health = game.health;
+	player.heart = game.hearts;
 
 	while (window.isOpen() && (!game.restart))
 	{
@@ -363,21 +350,14 @@ bool StartGame(RenderWindow & window, Game & game)
 		{
 			game.level++;
 			game.restart = true;
+			game.health = player.health;
+			game.hearts = player.heart;
 		}
-		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
+		for (auto *e : enemies)
 		{
-			if ((*it_e)->name == "flyEnemy" && (*it_e)->isShoot)
+			if ((*e).name == "flyEnemy" && (*e).isShoot)
 			{
-				float x, y;
-				if ((*it_e)->x > player.GetPos().x)
-					x = (*it_e)->x;
-				else
-					x = (*it_e)->x + (*it_e)->w;
-				if ((*it_e)->y > player.GetPos().y)
-					y = (*it_e)->y;
-				else
-					y = (*it_e)->y + (*it_e)->h;
-				bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.GetPos().x, player.GetPos().y));
+				CreateBullet(bullets, (*e).GetRect(), lvl, player, texture);
 				shoot.play();
 			}
 		}

@@ -29,6 +29,8 @@ struct Graphics
 
 struct Game
 {
+	int health = 5;
+	int hearts = 1;
 	bool isPause = true;
 	bool restart;
 	bool isTrapLevel = false;

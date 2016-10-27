@@ -99,10 +99,6 @@ void Enemy::Update(float time, Vector2f pos)
 	sprite.setTextureRect(IntRect(imageX + w * int(currentFrame), imageY, w, h));
 	sprite.setPosition(x + w / 2, y + h / 2); //задаем позицию спрайта в место его центра
 	if (health <= 0) { life = false; }
-	/*if (name == "trap")
-	{
-		sprite.setScale(0.5f, 0.5f);
-	}*/
 }
 
 void Enemy::SetScale(enemyStates newState, Vector2f direction)
