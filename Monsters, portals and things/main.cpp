@@ -205,8 +205,7 @@ void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 {
 	if (!player.life)
 	{
-		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 200, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
-		DrawMessage(window, game.graphic.text, "Закройте окно игры, чтобы выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
+		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 150, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		game.isPause = true;
 	}
 	if (player.isExit)
@@ -214,13 +213,19 @@ void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 		DrawMessage(window, game.graphic.text, "Вы смогли выбраться", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		game.isPause = true;
 	}
-	if (game.isPause && player.life && !player.isExit)
+	if (game.isPause)
 	{
-		DrawMessage(window, game.graphic.text, "Нажмите Enter, чтобы снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 20, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		if (player.life && !player.isExit)
+		{
+			DrawMessage(window, game.graphic.text, "Пауза", camera.getCenter().x - 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
+			DrawMessage(window, game.graphic.text, "Нажмите Enter, чтобы снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 25, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		}
+		DrawMessage(window, game.graphic.text, "Нажмите Tab, чтобы перезапустить игру", camera.getCenter().x - WINDOW_SIZE.x / 2 + 5, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
+		DrawMessage(window, game.graphic.text, "Нажмите Esc, чтобы выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 200);
 	}
 }
 
-void RunningGame(RenderWindow & window)
+bool StartGame(RenderWindow & window, Game & game)
 {
 	Level lvl;
 	lvl.LoadFromFile("level1.tmx");
@@ -247,10 +252,10 @@ void RunningGame(RenderWindow & window)
 	font.loadFromFile("fonts/pixel.ttf");
 	Text text("", font, 25);
 
-	Game game;
 	game.graphic.statistic.heart = heartSprite;
 	game.graphic.statistic.life = lifeSprite;
 	game.graphic.text = text;
+	game.isPause = true;
 
 	vector <Enemy*>  enemies;
 	vector <Enemy*>::iterator it_e;
@@ -306,7 +311,10 @@ void RunningGame(RenderWindow & window)
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
+			{
 				window.close();
+				return false;
+			}
 			if (event.type == Event::MouseButtonPressed)
 			{
 				pos.y = float(player.teleportY);
@@ -334,6 +342,8 @@ void RunningGame(RenderWindow & window)
 			{
 				game.isPause = true;
 			}
+			if (Keyboard::isKeyPressed(Keyboard::Tab) && game.isPause) { return true; }
+			if (Keyboard::isKeyPressed(Keyboard::Escape)) { return false; }
 		}
 		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
 		{
@@ -378,11 +388,19 @@ void RunningGame(RenderWindow & window)
 	}
 }
 
+void RunningGame(RenderWindow & window, Game & game)
+{//ф-ция перезагружает игру , если это необходимо
+	if (StartGame(window, game)) 
+	{ 
+		RunningGame(window, game);
+	}
+}
 
 int main()
 {
-	RenderWindow window(VideoMode(640, 480), "Monsters, portals and things");
-	camera.reset(FloatRect(0, 0, 640, 480));
-	RunningGame(window);
+	RenderWindow window(VideoMode((unsigned int)WINDOW_SIZE.x, (unsigned int)WINDOW_SIZE.y), "Monsters, portals and things");
+	camera.reset(FloatRect(0, 0, WINDOW_SIZE.x, WINDOW_SIZE.y));
+	Game game;
+	RunningGame(window, game);
 	return 0;
 }
