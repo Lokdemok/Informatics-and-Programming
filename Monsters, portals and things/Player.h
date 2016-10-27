@@ -25,16 +25,17 @@ public:
 	bool isTeleport;
 	bool openPortal;
 	bool isInvulnerability;
+	float invulnerabilityTimer = 0;
 	float countInvulnerability = 0;
-	float durationInvulnerability = 300;
-	float speedChangedFrames = float(0.005);
+	float durationInvulnerability = 3000;
+	float speedChangedFrames = 0.005f;
 	int w;
 	int h;
 	String name;
 	Sprite sprite;
 	std::vector<Object> obj;
 	bool life;
-	bool isExit;
+	bool isExit = false;
 	enum { left, right, jump, stay } state;//добавляем тип перечисления - состояние объекта
 	int playerScore;//эта переменная может быть только у игрока
 	int imageX = 0;
@@ -75,5 +76,6 @@ public:
 	FloatRect GetRect();
 	int CooordinateYPortal(std::vector<Object> obj, Vector2f pos, int portalH);//ф ция проверки столкновений с картой
 	RectangleShape CreateAim(Vector2f pos);
+	Vector2f GetPos();
 };
 #endif

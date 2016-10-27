@@ -152,7 +152,6 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 			{
 				hero.health -= bullet->attack;
 				hero.isInvulnerability = true;
-				std::cout << hero.health << "\n";
 				bullet->life = false;
 				damage.play();
 			}
@@ -194,33 +193,32 @@ void TeleportPlayer(Player &player, vector<Portal*> &portals)
 }
 
 
-
-Text MakeMessage(string string, int size)
-{
-	Font font;
-	font.loadFromFile("fonts/pixel.ttf");
-	std::ostringstream message;   // объявили переменную здоровья и времени
-	message << string;
-	Text text(message.str(), font, size);
-	return text;
-}
-
-void ExitFound(RenderWindow & window, View &view, Text &text)
+void DrawMessage(RenderWindow &window, Text &text, const String str, float x, float y)
 {
 	text.setColor(Color::White);
-	text.setString("Вы смогли выбраться");
-	text.setPosition(view.getCenter().x - 150, view.getCenter().y - 80);
+	text.setString(str);
+	text.setPosition(x, y);
 	window.draw(text);
 }
 
-void GameOver(RenderWindow & window, View &view, Text &text)
+void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 {
-	text.setColor(Color::White);
-	text.setString("GAME OVER");
-	text.setPosition(view.getCenter().x - 65, view.getCenter().y - 20);
-	window.draw(text);
+	if (!player.life)
+	{
+		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 200, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		DrawMessage(window, game.graphic.text, "Закройте окно игры, чтобы выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
+		game.isPause = true;
+	}
+	if (player.isExit)
+	{
+		DrawMessage(window, game.graphic.text, "Вы смогли выбраться", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		game.isPause = true;
+	}
+	if (game.isPause && player.life && !player.isExit)
+	{
+		DrawMessage(window, game.graphic.text, "Нажмите Enter, чтобы снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 20, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+	}
 }
-
 
 void RunningGame(RenderWindow & window)
 {
@@ -252,7 +250,7 @@ void RunningGame(RenderWindow & window)
 	Game game;
 	game.graphic.statistic.heart = heartSprite;
 	game.graphic.statistic.life = lifeSprite;
-
+	game.graphic.text = text;
 
 	vector <Enemy*>  enemies;
 	vector <Enemy*>::iterator it_e;
@@ -328,35 +326,44 @@ void RunningGame(RenderWindow & window)
 				TeleportPlayer(player, portals);
 				teleport.play();
 			}
-
+			if (Keyboard::isKeyPressed(Keyboard::Return))
+			{
+				game.isPause = false;
+			}
+			if (Keyboard::isKeyPressed(Keyboard::P))
+			{
+				game.isPause = true;
+			}
 		}
 		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
 		{
 			if ((*it_e)->name == "flyEnemy" && (*it_e)->isShoot)
 			{
 				float x, y;
-				if ((*it_e)->x > player.x)
+				if ((*it_e)->x > player.GetPos().x)
 					x = (*it_e)->x;
 				else
 					x = (*it_e)->x + (*it_e)->w;
-				if ((*it_e)->y > player.y)
+				if ((*it_e)->y > player.GetPos().y)
 					y = (*it_e)->y;
 				else
 					y = (*it_e)->y + (*it_e)->h;
-				bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.x, player.y));
+				bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.GetPos().x, player.GetPos().y));
 				shoot.play();
 			}
 		}
 		EntitiesIntersection(player, enemies, portals, bullets, damage);
-		if (player.life) { setPlayerCoordinateForView(player.x, player.y); }
-		if (player.life && (!player.isExit))
+		if (player.life)
+		{
+			setPlayerCoordinateForView(player.GetPos().x, player.GetPos().y);
+		}
+		if (!game.isPause)
 		{
 			UpdateEnemies(enemies, time, player);
 			UpdatePortals(portals, time);
 			UpdateBullets(bullets, time);
 			player.Update(time, pos, game.portalH);
 		}
-	
 		window.setView(camera);
 		window.clear();
 		lvl.Draw(window);
@@ -365,15 +372,8 @@ void RunningGame(RenderWindow & window)
 		DrawBullets(window, bullets);
 		DrawStatistic(window, &game, player, camera);
 		window.draw(player.sprite);
+		DrawAllMessages(player, game, window);
 		music.setLoop(true);
-		if (!player.life)
-		{
-			GameOver(window, camera, text);
-		}
-		if (player.isExit)
-		{
-			ExitFound(window, camera, text);
-		}
 		window.display();
 	}
 }

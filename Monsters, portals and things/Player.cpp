@@ -5,18 +5,18 @@ void Player::Control(float time)
 	if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A))
 	{
 		state = left;
-		speed = float(0.2);
+		speed = 0.2f;
 	}
 
 	if (Keyboard::isKeyPressed(Keyboard::Right) || Keyboard::isKeyPressed(Keyboard::D))
 	{
 		state = right;
-		speed = float(0.2);
+		speed = 0.2f;
 	}
 	if (((Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::W))) && (onGround))
 	{
 		state = jump;
-		dy = -float(0.7);
+		dy = -0.5f;
 		onGround = false;
 	}
 	if (Keyboard::isKeyPressed(Keyboard::E) && (onGround))
@@ -80,7 +80,7 @@ void Player::Update(float time, Vector2f pos, int portalH)
 			life = false;
 	}
 	if (!isMove) speed = 0;
-	dy += float(0.0015)*time;
+	dy += 0.0015f*time;
 	teleportY = CooordinateYPortal(obj, pos, portalH);
 	if (teleportY != -1)
 	{
@@ -94,16 +94,16 @@ void Player::Update(float time, Vector2f pos, int portalH)
 	}
 	if (isInvulnerability)
 	{
+		invulnerabilityTimer += time;
 		if (currentFrame <= 1)
 		{
 			sprite.setColor(Color::Color(255, 255, 255, 100));
-			countInvulnerability++;
 		}
 		else
 			sprite.setColor(Color::Color(255, 255, 255, 255));
-		if (countInvulnerability >= durationInvulnerability)
+		if (invulnerabilityTimer >= durationInvulnerability)
 		{
-			countInvulnerability = 0;
+			invulnerabilityTimer = 0;
 			isInvulnerability = false;
 		}
 	}
@@ -172,4 +172,9 @@ RectangleShape Player::CreateAim(Vector2f pos)
 		line.setPosition(x + float(w / 2), y + float(h / 3));
 	}
 	return line;
+}
+
+Vector2f Player::GetPos()
+{
+	return Vector2f(x, y);
 }

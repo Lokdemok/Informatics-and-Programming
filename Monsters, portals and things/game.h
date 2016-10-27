@@ -24,10 +24,12 @@ struct Graphics
 {
 	Statistic statistic;
 	Texture allTexture;
+	Text text;
 };
 
 struct Game
 {
+	bool isPause = true;
 	int portalH = 50;
 	int portalW = 36;
 	Graphics graphic;
