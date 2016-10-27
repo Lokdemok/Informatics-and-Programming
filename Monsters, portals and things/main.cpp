@@ -256,6 +256,7 @@ bool StartGame(RenderWindow & window, Game & game)
 	game.graphic.statistic.life = lifeSprite;
 	game.graphic.text = text;
 	game.isPause = true;
+	game.restart = false;
 
 	vector <Enemy*>  enemies;
 	vector <Enemy*>::iterator it_e;
@@ -300,7 +301,7 @@ bool StartGame(RenderWindow & window, Game & game)
 	Object playerObject = lvl.GetObject("player");
 	Player player(texture, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);
 
-	while (window.isOpen())
+	while (window.isOpen() && (!game.restart))
 	{
 		float time = float(clock.getElapsedTime().asMicroseconds());
 		clock.restart();
@@ -310,10 +311,10 @@ bool StartGame(RenderWindow & window, Game & game)
 		Vector2f pos = window.mapPixelToCoords(pixelPos);
 		while (window.pollEvent(event))
 		{
-			if (event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed || (Keyboard::isKeyPressed(Keyboard::Escape) && game.isPause))
 			{
 				window.close();
-				return false;
+				game.restart = false;
 			}
 			if (event.type == Event::MouseButtonPressed)
 			{
@@ -342,8 +343,10 @@ bool StartGame(RenderWindow & window, Game & game)
 			{
 				game.isPause = true;
 			}
-			if (Keyboard::isKeyPressed(Keyboard::Tab) && game.isPause) { return true; }
-			if (Keyboard::isKeyPressed(Keyboard::Escape)) { return false; }
+			if (Keyboard::isKeyPressed(Keyboard::Tab) && game.isPause) 
+			{ 
+				game.restart = true; 
+			}
 		}
 		for (it_e = enemies.begin(); it_e != enemies.end(); it_e++)
 		{
@@ -386,6 +389,7 @@ bool StartGame(RenderWindow & window, Game & game)
 		music.setLoop(true);
 		window.display();
 	}
+	return game.restart;
 }
 
 void RunningGame(RenderWindow & window, Game & game)

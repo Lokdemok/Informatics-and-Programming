@@ -30,6 +30,7 @@ struct Graphics
 struct Game
 {
 	bool isPause = true;
+	bool restart;
 	int portalH = 50;
 	int portalW = 36;
 	Graphics graphic;
