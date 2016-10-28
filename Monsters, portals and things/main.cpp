@@ -23,8 +23,8 @@ string GetLevelNumb(Game &game)
 {
 	switch (game.level)
 	{
-	case 1: return "lev1.tmx"; break;
-	default: return "level1.tmx"; break;
+	case 1: return "level1.tmx"; break;
+	default: game.isEndLevel = true;  return "level2.tmx"; break;
 	}
 }
 
@@ -182,6 +182,7 @@ void TeleportPlayer(Player &player, vector<Portal*> &portals)
 				{
 					player.x = (*p).x - ((*p).w / 2);
 					player.y = (*p).y - ((*p).h / 2);
+					player.teleportTimer = 0.1f;
 				}
 			}
 		}
@@ -201,12 +202,16 @@ void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 {
 	if (!player.life)
 	{
-		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 150, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 200, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		game.isPause = true;
 	}
 	if (game.isPause)
 	{
-		if (player.life)
+		if (game.isEndLevel && player.isExit)
+		{
+			DrawMessage(window, game.graphic.text, "Вы смогли выбраться", camera.getCenter().x - 150, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
+		}
+		else if (player.life)
 		{
 			DrawMessage(window, game.graphic.text, "Пауза", camera.getCenter().x - 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
 			DrawMessage(window, game.graphic.text, "Enter - снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 145, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
@@ -348,10 +353,17 @@ bool StartGame(RenderWindow & window, Game & game)
 		}
 		if (player.isExit)
 		{
-			game.level++;
-			game.restart = true;
-			game.health = player.health;
-			game.hearts = player.heart;
+			if (game.isEndLevel)
+			{
+				game.isPause = true;
+			}
+			else
+			{
+				game.level++;
+				game.restart = true;
+				game.health = player.health;
+				game.hearts = player.heart;
+			}
 		}
 		for (auto *e : enemies)
 		{

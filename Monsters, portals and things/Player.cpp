@@ -1,6 +1,6 @@
 #include "Player.h"
 
-void Player::Control(float time)
+void Player::Control()
 {
 	if (Keyboard::isKeyPressed(Keyboard::Left) || Keyboard::isKeyPressed(Keyboard::A))
 	{
@@ -19,7 +19,7 @@ void Player::Control(float time)
 		dy = -0.5f;
 		onGround = false;
 	}
-	if (Keyboard::isKeyPressed(Keyboard::E) && (onGround))
+	if (Keyboard::isKeyPressed(Keyboard::E) && (onGround) && teleportTimer == 0)
 	{
 		isTeleport = true;
 	}
@@ -46,7 +46,7 @@ void Player::CheckCollisionWithMap(float Dx, float Dy)//ф ция проверки столкнове
 
 void Player::Update(float time, Vector2f pos, int portalH)
 {
-	Control(time);
+	Control();
 	switch (state)
 	{
 	case right:
@@ -80,6 +80,12 @@ void Player::Update(float time, Vector2f pos, int portalH)
 		}
 		else
 			life = false;
+	}
+	if (teleportTimer != 0)
+	{
+		teleportTimer += time;
+		if (teleportTimer >= cooldownTeleport)
+			teleportTimer = 0;
 	}
 	if (!isMove) speed = 0;
 	dy += 0.0015f*time;

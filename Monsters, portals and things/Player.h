@@ -28,6 +28,8 @@ public:
 	float invulnerabilityTimer = 0;
 	float countInvulnerability = 0;
 	float durationInvulnerability = 3000;
+	float teleportTimer = 0;
+	float cooldownTeleport = 500;
 	float speedChangedFrames = 0.005f;
 	int w;
 	int h;
@@ -70,7 +72,7 @@ public:
 	}
 
 
-	void Control(float time);
+	void Control();
 	void CheckCollisionWithMap(float Dx, float Dy);
 	void Update(float time, Vector2f pos, int portalH);
 	FloatRect GetRect();

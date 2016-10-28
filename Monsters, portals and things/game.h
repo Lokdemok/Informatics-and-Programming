@@ -33,7 +33,7 @@ struct Game
 	int hearts = 1;
 	bool isPause = true;
 	bool restart;
-	bool isTrapLevel = false;
+	bool isEndLevel = false;
 	int portalH = 50;
 	int portalW = 36;
 	int level = 1;

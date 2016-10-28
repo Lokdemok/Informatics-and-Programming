@@ -65,7 +65,7 @@ public:
 			health = 5;
 			attack = 1;
 			state = left;
-			distanceView = 2000;
+			distanceView = 1000;
 			watchPlayer = false;
 			numFrames = 16;
 		}
