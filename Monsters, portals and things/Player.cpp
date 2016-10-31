@@ -21,7 +21,7 @@ void Player::Control()
 	}
 	if (Keyboard::isKeyPressed(Keyboard::E) && (onGround) && teleportTimer == 0)
 	{
-		isTeleport = true;
+		isTeleporting = true;
 	}
 }
 
@@ -87,18 +87,18 @@ void Player::Update(std::vector<Object>  & obj, float time, Vector2f pos, int po
 		if (teleportTimer >= cooldownTeleport)
 			teleportTimer = 0;
 	}
-	if (!isMove) speed = 0;
+	if (!isMoving) speed = 0;
 	translocation.y += 0.0015f*time;
 	teleportY = CooordinateYPortal(obj, pos, portalH);
 	if (teleportY != -1)
 	{
-		openPortal = true;
+		doesOpenPortal = true;
 		sprite.setColor(Color::Color(153, 50, 153, 255));
 	}
 	else
 	{
 		sprite.setColor(Color::Color(255, 255, 255, 255));
-		openPortal = false;
+		doesOpenPortal = false;
 	}
 	if (isInvulnerability)
 	{

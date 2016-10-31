@@ -19,7 +19,7 @@ private:
 	float distanceView;
 	bool watchPlayer;
 	float shootTimer;
-	float speedChangeFrames;
+	float speedChangeFrames = 0.008f;
 	float timeRecharge = 3000;
 public:
 	float currentFrame = 0;
@@ -27,24 +27,22 @@ public:
 	int numFrames;
 	String name;
 	Sprite sprite;
-	bool alive;
+	bool alive = true;
 	bool isAttack;
 	bool isShoot;
-	int damage;
+	int damage = 1;
 
-	Enemy(Texture &texture, String Name, float X, float Y, int W, int H) {
-		position = Vector2f(X, Y);
-		size = Vector2i(W, H);
-		name = Name;
-		alive = true;
-		speedChangeFrames = float(0.008);
+	Enemy(Texture &texture, String Name, float X, float Y, int W, int H) 
+		: position(X, Y)
+		, size(W, H)
+		, name(Name)
+	{
 		sprite.setTexture(texture);
 		sprite.setOrigin(float(size.x / 2), float(size.y / 2));
 		if (name == "easyEnemy")
 		{
 			imagePos = Vector2i(0, 17);
 			health = 2;
-			damage = 1;
 			translocation.x = -float(0.1);
 			numFrames = 9;
 		}
@@ -52,7 +50,6 @@ public:
 		{
 			imagePos = Vector2i(2, 108);
 			health = 5;
-			damage = 1;
 			state = left;
 			distanceView = 1000;
 			watchPlayer = false;
@@ -64,7 +61,6 @@ public:
 		{
 			imagePos = Vector2i(107, 211);
 			health = 2;
-			damage = 1;
 			numFrames = 6;
 		}
 		sprite.setTextureRect(IntRect(imagePos.x, imagePos.y, size.x, size.y));

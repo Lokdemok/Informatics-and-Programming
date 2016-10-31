@@ -16,19 +16,18 @@ private:
 	Vector2f position;
 	Vector2i size;
 	float currentFrame = 0;
-	float speedChandegFrames;
+	float speedChandegFrames = 0.005f;
 public:
-	bool isOpen;
+	bool isOpen = false;
 	String name;
 	Sprite sprite;
-	bool alive;
+	bool alive = true;
 
 	Portal(Texture &texture, String Name, Vector2f pos, int W, int H)
+		: position(pos)
+		, size(W, H)
+		, name(Name)
 	{
-		position = pos;
-		size = Vector2i(W, H);
-		name = Name;
-		speedChandegFrames = float(0.005);
 		sprite.setTexture(texture);
 		if (name == "yellow")
 		{
@@ -36,8 +35,6 @@ public:
 		}
 
 		sprite.setTextureRect(IntRect(100, 150, size.x, size.y));
-		alive = true;
-		isOpen = false;
 	}
 	void Update(float time);
 	Vector2f GetCoordinates();

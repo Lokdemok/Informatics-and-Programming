@@ -108,7 +108,7 @@ void DrawStatistic(RenderWindow & window, Game *g, Player &player, View camera)
 	}
 }
 
-void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl, Vector2f pos, Texture &texture)
+void CreatePortal(vector<Portal*> & portals, Game &game, String name, Vector2f pos, Texture &texture)
 {
 	// TODO: use range-based for
 	for (auto *p : portals)
@@ -120,7 +120,7 @@ void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl,
 
 }
 
-void CreateBullet(vector<Bullet*> & bullets, FloatRect rectEnemy, Level lvl, Player &player, Texture &texture)
+void CreateBullet(vector<Bullet*> & bullets, FloatRect rectEnemy, Player &player, Texture &texture)
 {
 	float x, y;
 	if (rectEnemy.left > player.GetPos().x)
@@ -173,13 +173,13 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 }
 void TeleportPlayer(Player &player, vector<Portal*> &portals)
 {
-	player.isTeleport = false;
+	player.isTeleporting = false;
 	if (portals.size() >= 2)
 	{
 		String namePortal;
 		for (auto *p : portals)
 		{
-			if (player.GetRect().intersects((*p).GetRect()))
+			if (player.GetRect().intersects(p->GetRect()))
 			{
 				namePortal = (*p).name;
 			}
@@ -332,18 +332,18 @@ bool StartGame(RenderWindow & window, Game & game)
 			if (event.type == Event::MouseButtonPressed)
 			{
 				pos.y = float(player.teleportY);
-				if ((event.key.code == Mouse::Left) && (player.openPortal))
+				if ((event.key.code == Mouse::Left) && (player.doesOpenPortal))
 				{
-					CreatePortal(portals, game, "blue", lvl, pos, texture);
+					CreatePortal(portals, game, "blue", pos, texture);
 					portal.play();
 				}
-				else if (event.key.code == Mouse::Right && (player.openPortal))
+				else if (event.key.code == Mouse::Right && (player.doesOpenPortal))
 				{
-					CreatePortal(portals, game, "yellow", lvl, pos, texture);
+					CreatePortal(portals, game, "yellow", pos, texture);
 					portal.play();
 				}
 			}
-			if (player.isTeleport)
+			if (player.isTeleporting)
 			{
 				TeleportPlayer(player, portals);
 				teleport.play();
@@ -379,7 +379,7 @@ bool StartGame(RenderWindow & window, Game & game)
 		{
 			if ((*e).name == "flyEnemy" && (*e).isShoot)
 			{
-				CreateBullet(bullets, (*e).GetRect(), lvl, player, texture);
+				CreateBullet(bullets, (*e).GetRect(), player, texture);
 				shoot.play();
 			}
 		}

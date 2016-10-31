@@ -15,17 +15,18 @@ class Player
 private:
 	Vector2f position;
 	Vector2i size;
-	Vector2i imagePos;
-	Vector2f translocation;
+	Vector2i imagePos = Vector2i(0, 151);
+	Vector2f translocation = Vector2f(0, 0);
+
 public:
-	float speed;
+	float speed = 0;
 	float currentFrame = 0;
-	int health;
-	bool onGround;
-	bool isMove;
-	bool isTeleport;
-	bool openPortal;
-	bool isInvulnerability;
+	int health = 5;
+	bool onGround = false;
+	bool isMoving = false;
+	bool isTeleporting = false;
+	bool doesOpenPortal;
+	bool isInvulnerability = false;
 	float invulnerabilityTimer = 0;
 	float countInvulnerability = 0;
 	float durationInvulnerability = 3000;
@@ -34,28 +35,19 @@ public:
 	float speedChangedFrames = 0.005f;
 	String name;
 	Sprite sprite;
-	bool alive;
+	bool alive = true;
 	bool isExit = false;
 	enum { left, right, jump, stay } state;//добавляем тип перечисления - состояние объекта
-	int playerScore;//эта переменная может быть только у игрока
-	int heart;
+	int heart = 1;
 	int teleportY;
+
+	// TODO: move to C++
 	Player(Texture &texture, String Name, float X, float Y, int W, int H)
+		: state(stay)
+		, position(X, Y)
+		, size(W, H)
+		, name(Name)
 	{
-		playerScore = 0; 
-		state = stay;
-		position = Vector2f(X, Y);
-		size = Vector2i(W, H);
-		imagePos = Vector2i(0, 151);
-		name = Name;
-		speed = 0; 
-		health = 5; 
-		heart = 1;
-		translocation = Vector2f(0, 0);
-		alive = true;
-		onGround = false; 
-		isMove = false;
-		isTeleport = false;
 		sprite.setTexture(texture);
 		sprite.setOrigin(float(size.x / 2), float(size.y / 2));
 		if (name == "Player1")
