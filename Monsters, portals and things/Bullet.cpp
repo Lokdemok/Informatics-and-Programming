@@ -1,30 +1,26 @@
 #include "Bullet.h"
 
-void Bullet::Update(float time)
+void Bullet::Update(float time, std::vector <Object> & objects)
 {
-	float positionGoal = sqrt((goalX - x)*(goalX - x) + (goalY - y)*(goalY - y));//считаем дистанцию (длину от точки А до точки Б). формула длины вектора
+	float positionGoal = std::hypot(goal.x - position.x, goal.y - position.y);//считаем дистанцию (длину от точки А до точки Б). формула длины вектора
 
 	if (positionGoal > 10) //этим условием убираем дергание во время конечной позиции спрайта
 	{
-		x += speed*time*(goalX - x) / positionGoal;// / distance;//идем по иксу с помощью вектора нормали
-		y += speed*time*(goalY - y) / positionGoal; /// distance;//идем по игреку так же
+		position += speed*time*(goal - position) / positionGoal;
 	}
 	else
 	{
-		goalX += startDX;
-		goalY += startDY;
+		goal += translocation;
 	}
-	//x += dx*time;//само движение пули по х
-	//y += dy*time;//по у
 
-	if (x <= 0) x = 1;// задержка пули в левой стене, чтобы при проседании кадров она случайно не вылетела за предел карты и не было ошибки
-	if (y <= 0) y = 1;
+	if (position.x <= 0) position.x = 1;// задержка пули в левой стене, чтобы при проседании кадров она случайно не вылетела за предел карты и не было ошибки
+	if (position.y <= 0) position.y = 1;
 
-	for (int i = 0; i < obj.size(); i++)
-	{//проход по объектам solid
-		if (GetRect().intersects(obj[i].rect)) //если этот объект столкнулся с пулей,
+	for (auto o : objects)
+	{
+		if (o.name == "solid" && GetRect().intersects(o.rect))
 		{
-			life = false;// то пуля умирает
+			alive = false;// то пуля умирает
 		}
 	}
 	currentFrame += time * float(0.008);
@@ -32,11 +28,11 @@ void Bullet::Update(float time)
 	{
 		currentFrame = 0;
 	}
-	sprite.setTextureRect(IntRect(imageX + w * int(currentFrame), imageY, w, h));
-	sprite.setPosition(x + w / 2, y + h / 2);//задается позицию пуле
+	sprite.setTextureRect(IntRect(imagePosition.x + size.x * int(currentFrame), imagePosition.y, size.x, size.y));
+	sprite.setPosition(position.x + size.x / 2, position.y + size.y / 2);//задается позицию пуле
 }
 
 FloatRect Bullet::GetRect()
 {//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-	return FloatRect(x, y, float(w), float(h));//эта ф-ция нужна для проверки столкновений 
+	return FloatRect(position.x, position.y, float(size.x), float(size.y));//эта ф-ция нужна для проверки столкновений 
 }

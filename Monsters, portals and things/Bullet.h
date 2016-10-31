@@ -10,49 +10,38 @@ using namespace sf;
 class Bullet 
 {
 public:
-	float goalX;
-	float goalY;
+private:
+	Vector2f position;
+	Vector2i size;
 	float currentFrame = 0;
-	float x;
-	float y;
-	int w;
-	int h;
+	Vector2f goal;
+	Vector2f imagePosition;
+	Vector2f translocation;
+public:
 	float numFrames;
 	float speed;
 	String name;
 	Sprite sprite;
-	std::vector<Object> obj;
-	bool life;
-	int imageX;
-	int imageY;
-	float startDX;
-	float startDY;
-	int attack;
+	bool alive;
+	int damage;
 
-	Bullet(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H, float xGoal, float yGoal)
+	Bullet(Texture &texture, String Name, float X, float Y, int W, int H, Vector2f goalPos)
 	{
-		x = X;
-		y = Y;
-		goalX = xGoal;
-		goalY = yGoal;
-		life = true;
-		w = W;
-		h = H;
+		position = Vector2f(X, Y);
+		goal = goalPos;
+		alive = true;
+		size = Vector2i(W, H);
 		name = Name;
-		obj = lvl.GetObjects("solid");
-		sprite.setTexture(texture);
-		sprite.setOrigin(float(w / 2), float(h / 2));
-		imageX = 0;
-		imageY = 0;
 		speed = float(0.3);
-		sprite.setTextureRect(IntRect(imageX, imageY, w, h));
-		attack = 1;
-		startDX = xGoal - X;
-		startDY = yGoal - Y;
-		numFrames = 7;//даем скорость.этот объект всегда двигается
+		damage = 1;
+		translocation = goal - position;
+		numFrames = 7;
+		sprite.setTexture(texture);
+		sprite.setOrigin(float(size.x / 2), float(size.y / 2));
+		imagePosition = Vector2f(0, 0);
+		sprite.setTextureRect(IntRect(imagePosition.x, imagePosition.y, size.x, size.y));
 	}
-
-	void Update(float time);
+	void Update(float time, std::vector <Object> & obj);
 	FloatRect GetRect();
 };
 #endif

@@ -13,41 +13,35 @@ using namespace sf;
 class Portal
 {
 private:
-	int size;
-public:
+	Vector2f position;
+	Vector2i size;
 	float currentFrame = 0;
-	bool isOpen;
-	float x;
-	float y;
 	float speedChandegFrames;
-	int w;
-	int h;
+public:
+	bool isOpen;
 	String name;
 	Sprite sprite;
-	std::vector<Object> obj;
-	bool life;
+	bool alive;
 
-	Portal(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H)
+	Portal(Texture &texture, String Name, Vector2f pos, int W, int H)
 	{
-		obj = lvl.GetObjects("solid");
-		x = X;
-		y = Y;
-		w = W;
-		h = H;
+		position = pos;
+		size = Vector2i(W, H);
 		name = Name;
 		speedChandegFrames = float(0.005);
-		size = 281;
 		sprite.setTexture(texture);
 		if (name == "yellow")
 		{
 			sprite.setColor(Color::Yellow);
 		}
-		sprite.setTextureRect(IntRect(100, 150, w, h));
-		life = true;
+
+		sprite.setTextureRect(IntRect(100, 150, size.x, size.y));
+		alive = true;
 		isOpen = false;
 	}
 	void Update(float time);
-	Vector2f GetCoordinates(float X, float Y);
+	Vector2f GetCoordinates();
+	Vector2i GetSize();
 	FloatRect GetRect();
 };
 #endif

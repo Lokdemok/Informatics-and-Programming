@@ -11,13 +11,23 @@
 #include "Enemy.h"
 #include "Bullet.h"
 #include "game.h"
-#include "Camera.h"
 
 
 
 using namespace sf;
 using namespace std;
 
+
+View setPlayerCoordinateForView(View &camera, float x, float y)
+{
+	float tempX = x;
+	float tempY = y;
+	if (x < 320) tempX = 320;
+	if (y < 240) tempY = 240;
+	if (y > 720) tempY = 720;
+	camera.setCenter(tempX, tempY);
+	return camera;
+}
 
 string GetLevelNumb(Game &game)
 {
@@ -28,13 +38,13 @@ string GetLevelNumb(Game &game)
 	}
 }
 
-void UpdateEnemies(vector<Enemy*> & enemy, float time, Player &hero)
+void UpdateEnemies(vector <Object> & obj, vector<Enemy*> & enemy, float time, Player &hero)
 {
 	for (auto *e : enemy)
 	{
-		(*e).Update(time, hero.GetPos());
+		(*e).Update(time, hero.GetPos(), obj);
 	}
-	enemy.erase(remove_if(enemy.begin(), enemy.end(), [](Enemy* &enemy) { return !enemy->life; }), enemy.end());
+	enemy.erase(remove_if(enemy.begin(), enemy.end(), [](Enemy* &enemy) { return !enemy->alive; }), enemy.end());
 }
 
 void UpdatePortals(vector <Portal*> &portal, float time)
@@ -43,16 +53,16 @@ void UpdatePortals(vector <Portal*> &portal, float time)
 	{
 		(*p).Update(time);
 	}
-	portal.erase(remove_if(portal.begin(), portal.end(), [](Portal* &portal) { return !portal->life; }), portal.end());
+	portal.erase(remove_if(portal.begin(), portal.end(), [](Portal* &portal) { return !portal->alive; }), portal.end());
 }
 
-void UpdateBullets(vector <Bullet*> & bullet, float time)
+void UpdateBullets(vector <Object> & obj, vector <Bullet*> & bullet, float time)
 {
 	for (auto *b : bullet)
 	{
-		(*b).Update(time);
+		(*b).Update(time, obj);
 	}
-	bullet.erase(remove_if(bullet.begin(), bullet.end(), [](Bullet* &bullet) { return !bullet->life; }), bullet.end());
+	bullet.erase(remove_if(bullet.begin(), bullet.end(), [](Bullet* &bullet) { return !bullet->alive; }), bullet.end());
 }
 
 void DrawEnemies(RenderWindow & window, vector<Enemy*> & enemy)
@@ -104,9 +114,9 @@ void CreatePortal(vector<Portal*> & portals, Game &game, String name, Level lvl,
 	for (auto *p : portals)
 		if ((*p).name == name)
 		{
-			(*p).life = false;
+			(*p).alive = false;
 		}
-	portals.push_back(new Portal(texture, name, lvl, pos.x, pos.y, game.portalW, game.portalH));
+	portals.push_back(new Portal(texture, name, pos, game.portalW, game.portalH));
 
 }
 
@@ -121,7 +131,7 @@ void CreateBullet(vector<Bullet*> & bullets, FloatRect rectEnemy, Level lvl, Pla
 		y = rectEnemy.top;
 	else
 		y = rectEnemy.top + rectEnemy.height;
-	bullets.push_back(new Bullet(texture, "bullet", lvl, x, y, 14, 14, player.GetPos().x, player.GetPos().y));
+	bullets.push_back(new Bullet(texture, "bullet", x, y, 14, 14, player.GetPos()));
 }
 
 void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &portals, vector<Bullet*> &bullets, Sound &damage)
@@ -133,7 +143,7 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 		{
 			if (!hero.isInvulnerability)
 			{
-				hero.health -= enemy->attack;
+				hero.health -= enemy->damage;
 				hero.isInvulnerability = true;
 				damage.play();
 				if (enemy->name == "trap")
@@ -147,15 +157,15 @@ void EntitiesIntersection(Player &hero, vector<Enemy*> &enemy, vector<Portal*> &
 			Bullet *bullet = b;
 			if (hero.GetRect().intersects(bullet->GetRect()) && (!hero.isInvulnerability))
 			{
-				hero.health -= bullet->attack;
+				hero.health -= bullet->damage;
 				hero.isInvulnerability = true;
-				bullet->life = false;
+				bullet->alive = false;
 				damage.play();
 			}
 			if (bullet->GetRect().intersects(enemy->GetRect()))
 			{
-				enemy->health -= bullet->attack;
-				bullet->life = false;
+				enemy->health -= bullet->damage;
+				bullet->alive = false;
 			}
 		}
 
@@ -180,8 +190,7 @@ void TeleportPlayer(Player &player, vector<Portal*> &portals)
 			{
 				if (!((*p).name == namePortal))
 				{
-					player.x = (*p).x - ((*p).w / 2);
-					player.y = (*p).y - ((*p).h / 2);
+					player.SetPos((*p).GetCoordinates().x - ((*p).GetSize().x / 2), (*p).GetCoordinates().y - ((*p).GetSize().y / 2));
 					player.teleportTimer = 0.1f;
 				}
 			}
@@ -200,24 +209,24 @@ void DrawMessage(RenderWindow &window, Text &text, const String str, float x, fl
 
 void DrawAllMessages(Player &player, Game &game, RenderWindow &window)
 {
-	if (!player.life)
+	if (!player.alive)
 	{
-		DrawMessage(window, game.graphic.text, "GAME OVER", camera.getCenter().x - WINDOW_SIZE.x / 2 + 200, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+		DrawMessage(window, game.graphic.text, "GAME OVER", game.camera.getCenter().x - WINDOW_SIZE.x / 2 + 200, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		game.isPause = true;
 	}
 	if (game.isPause)
 	{
 		if (game.isEndLevel && player.isExit)
 		{
-			DrawMessage(window, game.graphic.text, "Вы смогли выбраться", camera.getCenter().x - 150, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
+			DrawMessage(window, game.graphic.text, "Вы смогли выбраться", game.camera.getCenter().x - 150, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
 		}
-		else if (player.life)
+		else if (player.alive)
 		{
-			DrawMessage(window, game.graphic.text, "Пауза", camera.getCenter().x - 50, camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
-			DrawMessage(window, game.graphic.text, "Enter - снять с паузы", camera.getCenter().x - WINDOW_SIZE.x / 2 + 145, camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
+			DrawMessage(window, game.graphic.text, "Пауза", game.camera.getCenter().x - 50, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 50);
+			DrawMessage(window, game.graphic.text, "Enter - снять с паузы", game.camera.getCenter().x - WINDOW_SIZE.x / 2 + 145, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 100);
 		}
-		DrawMessage(window, game.graphic.text, "Tab - перезапустить уровень", camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
-		DrawMessage(window, game.graphic.text, "Esc - выйти", camera.getCenter().x - WINDOW_SIZE.x / 2 + 220, camera.getCenter().y - WINDOW_SIZE.y / 2 + 200);
+		DrawMessage(window, game.graphic.text, "Tab - перезапустить уровень", game.camera.getCenter().x - WINDOW_SIZE.x / 2 + 100, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 150);
+		DrawMessage(window, game.graphic.text, "Esc - выйти", game.camera.getCenter().x - WINDOW_SIZE.x / 2 + 220, game.camera.getCenter().y - WINDOW_SIZE.y / 2 + 200);
 	}
 }
 
@@ -256,23 +265,24 @@ bool StartGame(RenderWindow & window, Game & game)
 	vector <Enemy*>  enemies;
 	std::vector<Object> e = lvl.GetObjects("easyEnemy");
 	for (Object i : e)
-		enemies.push_back(new Enemy(texture, "easyEnemy", lvl, i.rect.left, i.rect.top, 53, 28));
+		enemies.push_back(new Enemy(texture, "easyEnemy", i.rect.left, i.rect.top, 53, 28));
 
 	e = lvl.GetObjects("flyEnemy");
 	for (Object i : e)
-		enemies.push_back(new Enemy(texture, "flyEnemy", lvl, i.rect.left, i.rect.top, 38, 36));
+		enemies.push_back(new Enemy(texture, "flyEnemy", i.rect.left, i.rect.top, 38, 36));
 	
 	
 	if (lvl.IsExist("trap"))
 	{
 		e = lvl.GetObjects("trap");
 		for (Object i : e)
-			enemies.push_back(new Enemy(texture, "trap", lvl, i.rect.left, i.rect.top, 32, 18));
+			enemies.push_back(new Enemy(texture, "trap", i.rect.left, i.rect.top, 32, 18));
 	}
 
 
 	vector <Portal*> portals;
 	vector <Bullet*> bullets;
+	vector <Object> objects = lvl.GetAllObjects();
 	Clock clock;
 
 	SoundBuffer shootBuffer;
@@ -300,7 +310,7 @@ bool StartGame(RenderWindow & window, Game & game)
 	music.play();
 
 	Object playerObject = lvl.GetObject("player");
-	Player player(texture, "Player1", lvl, playerObject.rect.left, playerObject.rect.top, 32, 32);
+	Player player(texture, "Player1", playerObject.rect.left, playerObject.rect.top, 32, 32);
 	player.health = game.health;
 	player.heart = game.hearts;
 
@@ -374,24 +384,24 @@ bool StartGame(RenderWindow & window, Game & game)
 			}
 		}
 		EntitiesIntersection(player, enemies, portals, bullets, damage);
-		if (player.life)
+		if (player.alive)
 		{
-			setPlayerCoordinateForView(player.GetPos().x, player.GetPos().y);
+			setPlayerCoordinateForView(game.camera, player.GetPos().x, player.GetPos().y);
 		}
 		if (!game.isPause)
 		{
-			UpdateEnemies(enemies, time, player);
+			UpdateEnemies(objects, enemies, time, player);
 			UpdatePortals(portals, time);
-			UpdateBullets(bullets, time);
-			player.Update(time, pos, game.portalH);
+			UpdateBullets(objects, bullets, time);
+			player.Update(objects, time, pos, game.portalH);
 		}
-		window.setView(camera);
+		window.setView(game.camera);
 		window.clear();
 		lvl.Draw(window);
 		DrawEnemies(window, enemies);
 		DrawPortals(window, portals);
 		DrawBullets(window, bullets);
-		DrawStatistic(window, &game, player, camera);
+		DrawStatistic(window, &game, player, game.camera);
 		window.draw(player.sprite);
 		DrawAllMessages(player, game, window);
 		music.setLoop(true);
@@ -411,8 +421,8 @@ void RunningGame(RenderWindow & window, Game & game)
 int main()
 {
 	RenderWindow window(VideoMode((unsigned int)WINDOW_SIZE.x, (unsigned int)WINDOW_SIZE.y), "Monsters, portals and things");
-	camera.reset(FloatRect(0, 0, WINDOW_SIZE.x, WINDOW_SIZE.y));
 	Game game;
+	game.camera.reset(FloatRect(0, 0, WINDOW_SIZE.x, WINDOW_SIZE.y));
 	RunningGame(window, game);
 	return 0;
 }

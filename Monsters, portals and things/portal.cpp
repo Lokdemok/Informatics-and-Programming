@@ -10,20 +10,24 @@ void Portal::Update(float time)
 	}
 	if (isOpen)
 	{
-		sprite.setTextureRect(IntRect(100 + w * (int)currentFrame, 150, w, h));
+		sprite.setTextureRect(IntRect(100 + size.x * (int)currentFrame, 150, size.x, size.y));
 	}
 	else
 	{
-		sprite.setTextureRect(IntRect(344 - w * (int)currentFrame, 150, w, h));
+		sprite.setTextureRect(IntRect(344 - size.x * (int)currentFrame, 150, size.x, size.y));
 	}
-	sprite.setPosition(x - w / 2, y - h / 2);
+	sprite.setPosition(position.x - size.x / 2, position.y - size.y / 2);
 }
 
-Vector2f Portal::GetCoordinates(float X, float Y)
+Vector2f Portal::GetCoordinates()
 {
-	return{ x, y };
+	return{ position };
+}
+Vector2i Portal::GetSize()
+{
+	return{ size };
 }
 FloatRect Portal::GetRect()
 {//ф-ция получения прямоугольника. его коорд,размеры (шир,высот).
-	return FloatRect(x, y, float(w), float(h));//эта ф-ция нужна для проверки столкновений 
+	return FloatRect(position.x, position.y, float(size.x), float(size.y));//эта ф-ция нужна для проверки столкновений 
 }

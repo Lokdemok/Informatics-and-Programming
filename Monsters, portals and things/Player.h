@@ -12,13 +12,14 @@ using namespace sf;
 
 class Player 
 {
+private:
+	Vector2f position;
+	Vector2i size;
+	Vector2i imagePos;
+	Vector2f translocation;
 public:
-	float dx; 
-	float dy; 
-	float speed; 
+	float speed;
 	float currentFrame = 0;
-	float x;
-	float y;
 	int health;
 	bool onGround;
 	bool isMove;
@@ -31,53 +32,46 @@ public:
 	float teleportTimer = 0;
 	float cooldownTeleport = 500;
 	float speedChangedFrames = 0.005f;
-	int w;
-	int h;
 	String name;
 	Sprite sprite;
-	std::vector<Object> obj;
-	bool life;
+	bool alive;
 	bool isExit = false;
 	enum { left, right, jump, stay } state;//добавляем тип перечисления - состояние объекта
 	int playerScore;//эта переменная может быть только у игрока
-	int imageX = 0;
-	int imageY = 151;
 	int heart;
 	int teleportY;
-	Player(Texture &texture, String Name, Level &lvl, float X, float Y, int W, int H)
+	Player(Texture &texture, String Name, float X, float Y, int W, int H)
 	{
 		playerScore = 0; 
 		state = stay;
-		x = X;
-		y = Y;
-		w = W;
-		h = H;
+		position = Vector2f(X, Y);
+		size = Vector2i(W, H);
+		imagePos = Vector2i(0, 151);
 		name = Name;
 		speed = 0; 
 		health = 5; 
 		heart = 1;
-		dx = 0; 
-		dy = 0;
-		life = true; 
+		translocation = Vector2f(0, 0);
+		alive = true;
 		onGround = false; 
 		isMove = false;
 		isTeleport = false;
-		obj = lvl.GetAllObjects(); 
 		sprite.setTexture(texture);
-		sprite.setOrigin(float(w / 2), float(h / 2));
-		if (name == "Player1") 
+		sprite.setOrigin(float(size.x / 2), float(size.y / 2));
+		if (name == "Player1")
 		{
-			sprite.setTextureRect(IntRect(imageX + w, imageY, w, h));
+			sprite.setTextureRect(IntRect(imagePos.x + size.x, imagePos.y, size.x, size.y));
 		}
 	}
 
 
 	void Control();
-	void CheckCollisionWithMap(float Dx, float Dy);
-	void Update(float time, Vector2f pos, int portalH);
+	void CheckCollisionWithMap(float Dx, float Dy, std::vector<Object>  & obj);
+	void Update(std::vector<Object>  & obj, float time, Vector2f pos, int portalH);
 	FloatRect GetRect();
 	int CooordinateYPortal(std::vector<Object> obj, Vector2f pos, int portalH);//ф ция проверки столкновений с картой
 	RectangleShape CreateAim(Vector2f pos);
 	Vector2f GetPos();
+	void SetPos(float x, float y);
 };
 #endif

@@ -37,5 +37,6 @@ struct Game
 	int portalH = 50;
 	int portalW = 36;
 	int level = 1;
+	View camera;
 	Graphics graphic;
 };
